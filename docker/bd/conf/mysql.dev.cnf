@@ -1,0 +1,72 @@
+[mysqld]
+bind-address=0.0.0.0
+
+# Database Settings
+default-storage-engine=InnoDB
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+skip-character-set-client-handshake
+
+# Connection Settings
+max_connections=200
+max_allowed_packet=64M
+connect_timeout=10
+wait_timeout=28800
+max_connect_errors=100
+
+# Table Cache
+table_open_cache=4000
+table_definition_cache=2000
+
+# Query Optimization
+query_cache_type=0
+query_cache_size=0
+
+# InnoDB Settings (recommended for Moodle)
+innodb_buffer_pool_size=1G
+innodb_log_file_size=256M
+innodb_file_per_table=1
+innodb_flush_log_at_trx_commit=2
+innodb_flush_method=O_DIRECT
+innodb_lock_wait_timeout=50
+
+# Performance Schema
+performance_schema=ON
+performance_schema_max_table_instances=12500
+
+# Logging
+log_error=/var/log/mysql/error.log
+slow_query_log=1
+slow_query_log_file=/var/log/mysql/slow.log
+long_query_time=2
+
+# Binlog (for replication/backup)
+log_bin=/var/log/mysql/mysql-bin.log
+binlog_format=ROW
+server_id=1
+expire_logs_days=10
+
+# Thread Settings
+thread_stack=192K
+thread_cache_size=16
+
+# Moodle Specific Optimizations
+tmp_table_size=32M
+max_heap_table_size=32M
+sort_buffer_size=2M
+read_buffer_size=2M
+read_rnd_buffer_size=8M
+join_buffer_size=2M
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet=64M
+default-character-set=utf8mb4
+
+[mysql]
+default-character-set=utf8mb4
+
+[client]
+default-character-set=utf8mb4
+port=3306
