@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch apache edge",
+            "request": "launch",
+            "type": "msedge",
+            "url": "http://apache.localhost",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        },
+        {
+            "name": "Launch phpapache edge",
+            "request": "launch",
+            "type": "msedge",
+            "url": "http://phpapache.localhost:81",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        },
+        {
+            "name": "Launch phpinfo phpapache edge",
+            "request": "launch",
+            "type": "msedge",
+            "url": "http://phpapache.localhost:81/php-info",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch phpinfo and phpapache edge",
+            "configurations": [
+                "Launch phpinfo phpapache edge",
+                "Launch phpapache edge"
+            ]
+        }
+    ]
+}
