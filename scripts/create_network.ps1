@@ -11,11 +11,26 @@
 #>
 
 param(
-    [string]$NetworkName = "MyNet",
-    [string]$Driver = "bridge",
-    [string]$Subnet = "192.168.1.0/24",
-    [string]$Gateway = "192.168.1.1"
+    [string]$NetworkName,
+    [string]$Driver,
+    [string]$Subnet,
+    [string]$Gateway,
+    
+    [string]$envFile = ".\env\dev.network.env"
 )
+
+# Cargar variables de entorno desde el archivo
+$envVars = @{}
+
+if (-not (Test-Path $envFile)) {
+    Write-Error "Archivo de entorno '$envFile' no encontrado."
+    exit 1
+}
+Get-Content $envFile | ForEach-Object {
+    if ($_ -match '^\s*([^=]+)=(.*)$') {
+        $envVars[$matches[1]] = $matches[2]
+    }
+}
 
 Write-Host "`n=== Validando red Docker antes de crearla ===" -ForegroundColor Cyan
 
