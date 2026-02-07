@@ -11,7 +11,7 @@
 #>
 
 param(
-    [string]$NetworkName = "MyMoodleNet",
+    [string]$NetworkName = "MyNet",
     [string]$Driver = "bridge",
     [string]$Subnet = "192.168.1.0/24",
     [string]$Gateway = "192.168.1.1"
@@ -51,8 +51,8 @@ function Test-NetworkOverlap {
     $newRange = Convert-CIDRToRange $newCIDR
 
     $dockerNetworks = docker network inspect $(docker network ls -q) --format '{{json .IPAM.Config}}' |
-        ConvertFrom-Json |
-        Where-Object { $null -ne $_.Subnet }
+    ConvertFrom-Json |
+    Where-Object { $null -ne $_.Subnet }
 
     foreach ($net in $dockerNetworks) {
         foreach ($subnet in $net.Subnet) {
@@ -65,7 +65,7 @@ function Test-NetworkOverlap {
 
             if ($overlap) {
                 return @{
-                    Overlap = $true
+                    Overlap  = $true
                     Existing = $existingRange.CIDR
                 }
             }

@@ -23,17 +23,9 @@ $serverrootpath = $envVars['SERVER_ROOT_PATH']
 $locallogpath = $envVars['LOCAL_LOG_PATH']
 $serverlogpath = $envVars['SERVER_LOG_PATH']
 $serverip = $envVars['SERVER_IP']
-$networkdriver = $envVars['NETWORK_DRIVER']
-$networkname = $envVars['NETWORK_NAME']
-$networksubnet = $envVars['NETWORK_SUBNET']
-$networksubnetgateway = $envVars['NETWORK_SUBNET_GATEWAY']
 
-if ($networkname -and $networksubnet -and $networksubnetgateway) {
-    .\scripts\create_network.ps1 -networkName $networkname -subnet $networksubnet -gateway $networksubnetgateway -driver $networkdriver        
-}
-else {
-    Write-Warning "La red Docker ya existe o no se proporcionaron todos los parámetros necesarios."
-}
+
+.\scripts\create_network.ps1 
 
 if (docker ps -a --filter "name=^$containername$" --format "{{.Names}}" | Select-Object -First 1) {
     Write-Host "Eliminando contenedor existente: $containername"

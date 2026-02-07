@@ -27,18 +27,7 @@ $imageName = $envVars['DB_IMAGE_NAME']
 $networkName = $envVars['DB_NETWORK_NAME']
 $ip = $envVars["DB_IP"]
 
-if ($envVars['DB_NETWORK_NAME'] -and $envVars['DB_NETWORK_SUBNET'] -and $envVars['DB_NETWORK_SUBNET_GATEWAY'] ) {
-    $networkName = $envVars['DB_NETWORK_NAME']
-    $networksubnet = $envVars['DB_NETWORK_SUBNET']
-    $networksubnetgateway = $envVars['DB_NETWORK_SUBNET_GATEWAY']
-    $networkdriver = $envVars['DB_NETWORK_DRIVER']
-
-    Write-Host "Creando red: $networkName"
-    .\scripts\create_network.ps1 -networkName $networkName -subnet $networksubnet -gateway $networksubnetgateway -driver $networkDriver    
-}
-else {
-    Write-Warning "La red Docker ya existe o no se proporcionaron todos los parámetros necesarios."
-}
+.\scripts\create_network.ps1 
 
 # Eliminar contenedor si existe
 if (docker ps -a --filter "name=^${containerName}$" --format "{{.Names}}" | Select-Object -First 1) {
