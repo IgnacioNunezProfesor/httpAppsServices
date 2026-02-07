@@ -70,7 +70,29 @@ if (Test-Path $dbLocalDataDir) {
 else {
     Write-Host "El directorio no existe: $dbLocalDataDir"
 }
+# Eliminar directorios de datos y logs si existen
+if (Test-Path $dbLocalLog) {
+    Write-Host "Eliminando directorio de logs: $dbLocalLog"
 
+    try {
+        Remove-Item -Path $dbLocalLog -Recurse -Force -ErrorAction Stop
+        Write-Host "Directorio eliminado correctamente."
+    }
+    catch {
+        Write-Host "ERROR: No se pudo eliminar el directorio."
+        Write-Host "Detalle: $($_.Exception.Message)"
+    }
+
+    if (Test-Path $dbLocalLog) {
+        Write-Host "ADVERTENCIA: El directorio sigue existiendo después del intento de borrado."
+    }
+    else {
+        Write-Host "Verificación OK: el directorio ya no existe."
+    }
+}
+else {
+    Write-Host "El directorio no existe: $dbLocalLog"
+}
 
 # Construir y ejecutar comando docker
 $dockerCmd = @(
