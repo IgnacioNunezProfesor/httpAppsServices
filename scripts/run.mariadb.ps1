@@ -24,10 +24,11 @@ $dbLocalLog = $envVars['DB_LOCAL_LOG']
 
 $dbport = $envVars['DB_PORT'] 
 $imageName = $envVars['DB_IMAGE_NAME']
-$networkName = $envVars['DB_NETWORK_NAME']
-$ip = $envVars["DB_IP"]
 
-.\scripts\create_network.ps1 
+$ip = $envVars["DB_IP"]
+$networkName = $envVars["NETWORK_NAME"]
+
+.\scripts\create_network.ps1 --
 
 # Eliminar contenedor si existe
 if (docker ps -a --filter "name=^${containerName}$" --format "{{.Names}}" | Select-Object -First 1) {

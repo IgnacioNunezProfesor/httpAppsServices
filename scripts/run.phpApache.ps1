@@ -23,6 +23,7 @@ $serverrootpath = $envVars['SERVER_ROOT_PATH']
 $locallogpath = $envVars['LOCAL_LOG_PATH']
 $serverlogpath = $envVars['SERVER_LOG_PATH']
 $serverip = $envVars['SERVER_IP']
+$networkname = $envVars['NETWORK_NAME']
 
 
 .\scripts\create_network.ps1 
