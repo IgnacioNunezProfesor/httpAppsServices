@@ -60,8 +60,11 @@ echo "[Entrypoint] MariaDB está listo."
 # --------------------------------------------------------------------
 echo "[Entrypoint] Configurando usuario root..."
 mariadb -u root <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+CREATE USER 'root'@'%' IDENTIFIED BY '${DB_ROOT_PASS}';
+CREATE USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
+
 EOF
 
 # --------------------------------------------------------------------

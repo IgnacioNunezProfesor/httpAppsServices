@@ -38,9 +38,9 @@ Get-Content $envFile | ForEach-Object {
 # -------------------------------
 
 if (-not $NetworkName) { $NetworkName = $envVars["NETWORK_NAME"] }
-if (-not $Driver)      { $Driver      = $envVars["NETWORK_DRIVER"] }
-if (-not $Subnet)      { $Subnet      = $envVars["NETWORK_SUBNET"] }
-if (-not $Gateway)     { $Gateway     = $envVars["NETWORK_SUBNET_GATEWAY"] }
+if (-not $Driver) { $Driver = $envVars["NETWORK_DRIVER"] }
+if (-not $Subnet) { $Subnet = $envVars["NETWORK_SUBNET"] }
+if (-not $Gateway) { $Gateway = $envVars["NETWORK_SUBNET_GATEWAY"] }
 
 if (-not $NetworkName -or -not $Driver -or -not $Subnet -or -not $Gateway) {
     Write-Error "Faltan parámetros y no existen valores en el archivo $envFile para completarlos."
@@ -111,20 +111,15 @@ function Test-NetworkOverlap {
 
 $result = Test-NetworkOverlap -newCIDR $Subnet
 
-if ($result.Overlap) {
-    Write-Host "ERROR: La subred $Subnet solapa con la red existente $($result.Existing)" -ForegroundColor Red
-    exit 1
-}
 
-Write-Host "OK: La subred $Subnet no solapa con ninguna red Docker existente." -ForegroundColor Green
 
 # -------------------------------
 # VALIDACIÓN DE EXISTENCIA DE RED
 # -------------------------------
 
 $existingNetworkId = docker network ls --format "{{.ID}} {{.Name}}" |
-    Where-Object { $_ -match "^\S+\s+$NetworkName$" } |
-    ForEach-Object { ($_ -split " ")[0] }
+Where-Object { $_ -match "^\S+\s+$NetworkName$" } |
+ForEach-Object { ($_ -split " ")[0] }
 
 if ($existingNetworkId) {
     Write-Host "`n=== La red '$NetworkName' ya existe. Validando subred... ===" -ForegroundColor Cyan
