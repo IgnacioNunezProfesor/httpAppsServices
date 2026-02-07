@@ -50,13 +50,27 @@ if (docker ps -a --filter "name=^${containerName}$" --format "{{.Names}}" | Sele
 # Eliminar directorios de datos y logs si existen
 if (Test-Path $dbLocalDataDir) {
     Write-Host "Eliminando directorio de datos: $dbLocalDataDir"
-    Remove-Item -Path $dbLocalDataDir -Recurse -Force
+
+    try {
+        Remove-Item -Path $dbLocalDataDir -Recurse -Force -ErrorAction Stop
+        Write-Host "Directorio eliminado correctamente."
+    }
+    catch {
+        Write-Host "ERROR: No se pudo eliminar el directorio."
+        Write-Host "Detalle: $($_.Exception.Message)"
+    }
+
+    if (Test-Path $dbLocalDataDir) {
+        Write-Host "ADVERTENCIA: El directorio sigue existiendo después del intento de borrado."
+    }
+    else {
+        Write-Host "Verificación OK: el directorio ya no existe."
+    }
+}
+else {
+    Write-Host "El directorio no existe: $dbLocalDataDir"
 }
 
-if (Test-Path $dbLocalLog) {
-    Write-Host "Eliminando directorio de logs: $dbLocalLog"
-    Remove-Item -Path $dbLocalLog -Recurse -Force
-}
 
 # Construir y ejecutar comando docker
 $dockerCmd = @(
