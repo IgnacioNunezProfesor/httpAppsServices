@@ -11,7 +11,7 @@
 #>
 
 param(
-    [string]$NetworkName = "MyMoodleNet",
+    [string]$NetworkName = "MyNet",
     [string]$Driver = "bridge",
     [string]$Subnet = "192.168.1.0/24",
     [string]$Gateway = "192.168.1.1"

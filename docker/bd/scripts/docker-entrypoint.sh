@@ -70,9 +70,16 @@ EOF
 echo "[Entrypoint] Ejecutando scripts init..."
 for f in /entrypointsql/init*.sql; do
     [ -e "$f" ] || continue
-    echo "[Entrypoint] Ejecutando $f"
-    mariadb -u root -p"${DB_ROOT_PASS}" < "$f"
+    echo "[Entrypoint] Ejecutando $f con expansión de variables"
+
+    sed \
+        -e "s|\${DB_NAME}|${DB_NAME}|g" \
+        -e "s|\${DB_USER}|${DB_USER}|g" \
+        -e "s|\${DB_PASS}|${DB_PASS}|g" \
+        "$f" | mariadb -u root -p"${DB_ROOT_PASS}"
 done
+
+
 
 # --------------------------------------------------------------------
 # Parar servidor temporal
