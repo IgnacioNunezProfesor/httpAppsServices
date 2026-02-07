@@ -2,7 +2,12 @@ FROM alpine:latest
 
 ENV DB_SERVER_DATADIR=${DB_SERVER_DATADIR} \
     DB_SERVER_LOG=${DB_SERVER_LOG} \
-    DB_UNIX_USER=${DB_UNIX_USER}
+    DB_UNIX_USER=${DB_UNIX_USER} \
+    DB_NAME=${DB_NAME} \
+    DB_USER=${DB_USER} \
+    DB_PASS=${DB_PASS} \
+    DB_ROOT_PASS=${DB_ROOT_PASS}
+    
 
 # Instalar MariaDB y utilidades
 RUN apk add --no-cache \
