@@ -1,5 +1,7 @@
 [mysqld]
 bind-address=0.0.0.0
+skip-name-resolve
+lower_case_table_names=2
 
 # Database Settings
 default-storage-engine=InnoDB
