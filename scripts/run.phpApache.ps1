@@ -16,7 +16,7 @@ Get-Content $envFile | ForEach-Object {
 
 $imagename = $envVars['IMAGE_NAME']
 $containername = $envVars['CONTAINER_NAME']
-$servername = $envVars['SERVER_NAME']
+#$servername = $envVars['SERVER_NAME']
 $serverport = $envVars['SERVER_PORT']
 $localrootpath = $envVars['LOCAL_ROOT_PATH']
 $serverrootpath = $envVars['SERVER_ROOT_PATH']
