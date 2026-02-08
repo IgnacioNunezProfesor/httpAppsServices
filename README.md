@@ -1,16 +1,16 @@
-httpAppsServices
+# httpAppsServices
+
 Entorno de desarrollo orientado a aplicaciones web y servicios HTTP, con integración de WordPress como submódulo, utilidades en PowerShell y soporte para múltiples bases de datos mediante Docker.
 
-🚀 Objetivo del proyecto
+## 🚀 Objetivo del proyecto
+
 Proporcionar un entorno unificado para:
 
-Ejecutar servicios web.
+- Ejecutar servicios web.
+- Acceder a distintas bases de datos desde scripts y aplicaciones.
+- Integrar WordPress dentro de un flujo de desarrollo más amplio.
+- Automatizar tareas mediante PowerShell y Shell.
 
-Acceder a distintas bases de datos desde scripts y aplicaciones.
-
-Integrar WordPress dentro de un flujo de desarrollo más amplio.
-
-Automatizar tareas mediante PowerShell y Shell.
 
 📁 Estructura del repositorio
 docker/ — Configuración para acceso a bases de datos y servicios en contenedores.
@@ -46,3 +46,4 @@ Scripts reutilizables para despliegue y mantenimiento.
 Integración de WordPress como parte del entorno de pruebas.
 
 Configuración lista para usar en VS Code.
+
