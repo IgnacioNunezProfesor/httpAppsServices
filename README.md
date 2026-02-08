@@ -12,20 +12,16 @@ Proporcionar un entorno unificado para:
 - Automatizar tareas mediante PowerShell y Shell.
 
 
-📁 Estructura del repositorio
-docker/ — Configuración para acceso a bases de datos y servicios en contenedores.
+## 📁 Estructura del repositorio
 
-scripts/ — Scripts PowerShell y Shell para automatización y utilidades.
+- **docker/** — Configuración para acceso a bases de datos y servicios en contenedores.
+- **scripts/** — Scripts PowerShell y Shell para automatización y utilidades.
+- **wordpress/** — Submódulo con WordPress incluido en el proyecto.
+- **wwwroot/** — Archivos accesibles desde el servidor web.
+- **phpinfo/** — Utilidad para diagnóstico del entorno PHP.
+- **.vscode/** — Configuración del entorno de desarrollo.
+- **.gitmodules** — Declaración del submódulo WordPress.
 
-wordpress/ — Submódulo con WordPress incluido en el proyecto.
-
-wwwroot/ — Archivos accesibles desde el servidor web.
-
-phpinfo/ — Utilidad para diagnóstico del entorno PHP.
-
-.vscode/ — Configuración del entorno de desarrollo.
-
-.gitmodules — Declaración del submódulo WordPress.
 
 🛠️ Tecnologías utilizadas
 PowerShell (≈57%)
@@ -46,4 +42,5 @@ Scripts reutilizables para despliegue y mantenimiento.
 Integración de WordPress como parte del entorno de pruebas.
 
 Configuración lista para usar en VS Code.
+
 
