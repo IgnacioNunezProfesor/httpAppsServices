@@ -23,24 +23,21 @@ Proporcionar un entorno unificado para:
 - **.gitmodules** — Declaración del submódulo WordPress.
 
 
-🛠️ Tecnologías utilizadas
-PowerShell (≈57%)
+## 🛠️ Tecnologías utilizadas
 
-Shell
+- **PowerShell** (≈57%)
+- **Shell**
+- **PHP**
+- **Docker**
+- **HTML / CSS**
 
-PHP
+## 🧩 Funcionalidades destacadas
 
-Docker
+- Acceso centralizado a múltiples bases de datos.
+- Scripts reutilizables para despliegue y mantenimiento.
+- Integración de WordPress como parte del entorno de pruebas.
+- Configuración lista para usar en VS Code.
 
-HTML / CSS
 
-🧩 Funcionalidades destacadas
-Acceso centralizado a múltiples bases de datos.
-
-Scripts reutilizables para despliegue y mantenimiento.
-
-Integración de WordPress como parte del entorno de pruebas.
-
-Configuración lista para usar en VS Code.
 
 
