@@ -42,6 +42,24 @@ slow_query_log=1
 slow_query_log_file=/var/log/mysql/slow.log
 long_query_time=2
 
+log_warnings=3
+
+# Log general (todas las consultas y conexiones)
+general_log=1
+general_log_file=/var/log/mysql/general.log
+log_output=FILE
+
+# Auditoría detallada
+plugin_load_add = server_audit
+server_audit_logging = ON
+server_audit_events = CONNECT,QUERY,TABLE,QUERY_DDL,QUERY_DML,QUERY_DCL
+server_audit_output_type = FILE
+server_audit_file_path = /var/log/mysql/audit.log
+
+# InnoDB debug
+innodb_print_all_deadlocks=1
+innodb_monitor_enable=all
+
 # Binlog (for replication/backup)
 log_bin=/var/log/mysql/mysql-bin.log
 binlog_format=ROW
