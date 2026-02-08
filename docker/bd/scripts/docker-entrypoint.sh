@@ -58,17 +58,17 @@ echo "[Entrypoint] MariaDB está listo."
 # --------------------------------------------------------------------
 # Configurar root SOLO en localhost (socket)
 # --------------------------------------------------------------------
-echo "[Entrypoint] Configurando usuario root..."
-mariadb -u root <<EOF
-CREATE USER 'root'@'%' IDENTIFIED BY '${DB_ROOT_PASS}';
-CREATE USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
+#echo "[Entrypoint] Configurando usuario root..."
+#mariadb -u root <<EOF
+#CREATE USER 'root'@'%' IDENTIFIED BY '${DB_ROOT_PASS}';
+#CREATE USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+#GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+#FLUSH PRIVILEGES;
 
-EOF
+#EOF
 
 # --------------------------------------------------------------------
-# Ejecutar scripts init por socket (ya con contraseña)
+# Ejecutar scripts init por socket
 # --------------------------------------------------------------------
 echo "[Entrypoint] Ejecutando scripts init..."
 for f in /entrypointsql/init*.sql; do
@@ -79,7 +79,7 @@ for f in /entrypointsql/init*.sql; do
         -e "s|\${DB_NAME}|${DB_NAME}|g" \
         -e "s|\${DB_USER}|${DB_USER}|g" \
         -e "s|\${DB_PASS}|${DB_PASS}|g" \
-        "$f" | mariadb -u root -p"${DB_ROOT_PASS}"
+        "$f" | mariadb -u root
 done
 
 
