@@ -1,8 +1,8 @@
 <?php
 
 $host = "192.168.1.50";
-$user = "root";
-$pass = "123456";
+$user = "devuser";
+$pass = "devpass";
 $port = 3306;
 
 $conn = new mysqli($host, $user, $pass, "", $port);
@@ -22,4 +22,3 @@ while ($row = $result->fetch_assoc()) {
 echo "</ul>";
 
 $conn->close();
-?>
