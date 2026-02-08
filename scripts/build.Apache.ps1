@@ -4,26 +4,10 @@ Param(
     [string]$Tag = "apache:dev"
 )
 
-if (-not (Test-Path $EnvFile)) {
-    Write-Error "Env file '$EnvFile' not found."
-    exit 1
-}
+Import-Module .\scripts\mods\env.ps1
 
-$lines = Get-Content $EnvFile -ErrorAction Stop
-$buildArgs = @()
-
-foreach ($line in $lines) {
-    $line = $line.Trim()
-    if (-not $line -or $line.StartsWith('#')) { continue }
-    if ($line -notmatch '=') { continue }
-    $parts = $line -split '=', 2
-    $k = $parts[0].Trim()
-    $v = $parts[1].Trim()
-    if ($v.StartsWith('"') -and $v.EndsWith('"')) { $v = $v.Substring(1, $v.Length - 2) }
-    if ($v.StartsWith("'") -and $v.EndsWith("'")) { $v = $v.Substring(1, $v.Length - 2) }
-    $buildArgs += '--build-arg'
-    $buildArgs += "$k=$v"
-}
+$buildArgs = Get-EnvVarsFromFile -envFile $envFile
+$buildArgs = $buildArgs.GetEnumerator() | ForEach-Object { "--build-arg $($_.Key)=$($_.Value)" }
 
 $argsSTR = @(
     'build', 

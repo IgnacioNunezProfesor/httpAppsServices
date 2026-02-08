@@ -1,18 +1,10 @@
 Param(
     [string]$envFile = ".\env\dev.phpapache.env"
 )
+Import-Module .\scripts\mods\env.ps1
 # Cargar variables de entorno desde el archivo
-$envVars = @{}
+$envVars = Get-EnvVarsFromFile -envFile $envFile
 
-if (-not (Test-Path $envFile)) {
-    Write-Error "Archivo de entorno '$envFile' no encontrado."
-    exit 1
-}
-Get-Content $envFile | ForEach-Object {
-    if ($_ -match '^\s*([^=]+)=(.*)$') {
-        $envVars[$matches[1]] = $matches[2]
-    }
-}
 
 $imagename = $envVars['IMAGE_NAME']
 $containername = $envVars['CONTAINER_NAME']

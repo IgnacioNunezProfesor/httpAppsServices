@@ -1,18 +1,9 @@
 Param(
     [string]$envFile = ".\env\dev.apache.env"
 )
-# Cargar variables de entorno desde el archivo
-$envVars = @{}
 
-if (-not (Test-Path $envFile)) {
-    Write-Error "Archivo de entorno '$envFile' no encontrado."
-    exit 1
-}
-Get-Content $envFile | ForEach-Object {
-    if ($_ -match '^\s*([^=]+)=(.*)$') {
-        $envVars[$matches[1]] = $matches[2]
-    }
-}
+Import-Module .\scripts\mods\env.ps1
+$envVars = Get-EnvVarsFromFile -envFile $EnvFile
 
 $imagename = $envVars['IMAGE_NAME']
 $containername = $envVars['CONTAINER_NAME']
@@ -30,7 +21,8 @@ $networksubnetgateway = $envVars['NETWORK_SUBNET_GATEWAY']
 
 if ($networkname -and $networksubnet -and $networksubnetgateway) {
     .\scripts\create_network.ps1 -networkName $networkname -subnet $networksubnet -gateway $networksubnetgateway -driver $networkdriver        
-}else{
+}
+else {
     Write-Warning "La red Docker ya existe o no se proporcionaron todos los parámetros necesarios."
 }
 

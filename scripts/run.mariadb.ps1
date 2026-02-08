@@ -2,17 +2,9 @@
 param(
     [string]$envFile = ".\env\dev.mariadb.env"
 )
-$envVars = @{}
 
-if (-not (Test-Path $envFile)) {
-    Write-Error "Env file '$envFile' not found."
-    exit 1
-} 
-Get-Content $envFile | ForEach-Object {
-    if ($_ -match '^\s*([^=]+)=(.*)$') {
-        $envVars[$matches[1]] = $matches[2]
-    }
-}
+Import-Module .\scripts\mods\env.ps1
+$envVars = Get-EnvVarsFromFile -envFile $EnvFile
 
 $containerName = $envVars['DB_CONTAINER_NAME']
 
