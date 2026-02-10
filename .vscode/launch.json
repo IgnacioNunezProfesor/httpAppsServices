@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug run.Wordpress.ps1",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/scripts/run.Wordpress.ps1",
+            "cwd": "${cwd}"
+        },
+        {
             "name": "Launch apache edge",
             "request": "launch",
             "type": "msedge",
@@ -24,7 +31,14 @@
             "type": "msedge",
             "url": "http://phpapache.localhost:81/php-info",
             "webRoot": "${workspaceFolder}/wwwroot"
-        }
+        },
+        {
+            "name": "Launch wordpress edge",
+            "request": "launch",
+            "type": "msedge",
+            "url": "http://wordpress.localhost:82",
+            "webRoot": "${workspaceFolder}/wordpress"
+        },
     ],
     "compounds": [
         {
