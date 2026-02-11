@@ -12,6 +12,13 @@
             "cwd": "${cwd}"
         },
         {
+            "name": "Debug build.phpApache.ps1",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/scripts/build.phpApache.ps1",
+            "cwd": "${cwd}"
+        },
+        {
             "name": "Launch apache edge",
             "request": "launch",
             "type": "msedge",

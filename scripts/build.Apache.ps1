@@ -6,17 +6,24 @@ Param(
 
 Import-Module .\scripts\mods\env.ps1
 
-$buildArgs = Get-EnvVarsFromFile -envFile $envFile
-$buildArgs = $buildArgs.GetEnumerator() | ForEach-Object { "--build-arg $($_.Key)=$($_.Value)" }
+$envVars = Get-EnvVarsFromFile -envFile $EnvFile
 
-$argsSTR = @(
-    'build', 
-    '--no-cache', 
-    '-f', $Dockerfile, 
-    '-t', $Tag
-) + $buildArgs + '.'
+$buildArgs = $envVars.GetEnumerator() | ForEach-Object {
+    @("--build-arg", "$($_.Key)=$($_.Value)") -join ' '
+}
 
-Write-Host "Ejecutando: docker $($argsSTR -join ' ')" & docker @argsSTR
+$argsArray = @(
+    'build',
+    '--no-cache',
+    $buildArgs -join ' ',
+    '-f', $Dockerfile,
+    '-t', $Tag,
+    "."
+)
+
+Write-Host "Ejecutando: docker $($argsArray -join ' ')"
+& docker @argsArray
+
 $code = $LASTEXITCODE
 if ($code -ne 0) {
     Write-Error "docker build falló con código $code"

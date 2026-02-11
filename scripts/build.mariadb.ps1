@@ -8,11 +8,20 @@ $envVars = Get-EnvVarsFromFile -envFile $envFile
 
 $Dockerfile = $envVars['DB_DOCKERFILE']
 $Tag = $envVars['DB_IMAGE_NAME']
-$buildArgsSTR = @(
-    "--build-arg DB_UNIX_USER=" + $envVars['DB_UNIX_USER'],
-    "--build-arg DB_SERVER_DATADIR=" + $envVars['DB_SERVER_DATADIR'],
-    "--build-arg DB_SERVER_LOG=" + $envVars['DB_SERVER_LOG']
-) -join ' '
+
+# Filtrar solo las variables que empiezan por BUILD_
+$buildVars = $envVars.GetEnumerator() | Where-Object { $_.Key -like "BUILD_*" }
+
+if ($buildVars.Count -eq 0) {
+    Write-Warning "No se encontró ninguna variable que empiece por 'BUILD_'."
+}
+
+# Construir los argumentos --build-arg
+$buildArgsArray = @()
+foreach ($item in $buildVars) {
+    $buildArgsArray += "--build-arg"
+    $buildArgsArray += "$($item.Key)=$($item.Value)"
+}
 
 $cmddockerSTR = @(
     'docker build', 
