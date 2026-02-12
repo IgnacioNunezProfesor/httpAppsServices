@@ -19,6 +19,13 @@
             "cwd": "${cwd}"
         },
         {
+            "name": "Debug run.FromEnvFile.ps1",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/scripts/run.FromEnvFile.ps1 -EnvFile .\\env\\dev.phpapache.env -NetworkFile .\\env\\dev.network.env",
+            "cwd": "${cwd}"
+        },
+        {
             "name": "Launch apache edge",
             "request": "launch",
             "type": "msedge",
