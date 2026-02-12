@@ -12,10 +12,10 @@
             "cwd": "${cwd}"
         },
         {
-            "name": "Debug build.phpApache.ps1",
+            "name": "Debug build.EnvFile.ps1",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/scripts/build.phpApache.ps1",
+            "script": "${workspaceFolder}/scripts/build.EnvFile.ps1 -EnvFile .\\env\\dev.apache.env",
             "cwd": "${cwd}"
         },
         {

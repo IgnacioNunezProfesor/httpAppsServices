@@ -28,12 +28,18 @@ function Get-EnvVarsByPrefix {
         [string]$prefix
     )
 
-   $filteredVars= $envVars.GetEnumerator() | Where-Object { $_.Key -like "$prefix*" }
-    if ($filteredVars.Count -eq 0) {
-        filteredVars = @{}
+    $filtered = @{}
+
+    foreach ($item in $envVars.GetEnumerator()) {
+        if ($item.Key -like "$prefix*") {
+            $filtered[$item.Key] = $item.Value
+        }
     }
-    return $filteredVars
+
+    return $filtered
 }
+
+
 
 function EnvVarsToBuildArgs {
     param(
@@ -41,10 +47,10 @@ function EnvVarsToBuildArgs {
         [hashtable]$envVars
     )
 
-    $buildArgsString = ""
-    foreach ($item in $envVars) {
-        $buildArgsString += "--build-arg $($item.Key)=$($item.Value) "
+    [string]$argString = ""
+    foreach ($key in $envVars.Keys) {
+        $argString += "--build-arg $key=$($envVars[$key]) "
     }
-    return $buildArgsString.Trim()
-}
 
+    return $argString.Trim()
+}
