@@ -1,12 +1,10 @@
 FROM alpine:latest
 
-ENV DB_SERVER_DATADIR=${DB_SERVER_DATADIR} \
-    DB_SERVER_LOG=${DB_SERVER_LOG} \
-    DB_UNIX_USER=${DB_UNIX_USER} \
+ENV SERVER_DATADIR=${SERVER_DATADIR} \
+    SERVER_LOG=${SERVER_LOG} \
     DB_NAME=${DB_NAME} \
     DB_USER=${DB_USER} \
-    DB_PASS=${DB_PASS} \
-    DB_ROOT_PASS=${DB_ROOT_PASS}
+    DB_PASS=${DB_PASS}
     
 
 # Instalar MariaDB y utilidades
@@ -24,8 +22,6 @@ COPY ./docker/bd/conf/mysql.dev.cnf /etc/my.cnf
 RUN dos2unix /entrypoint.sh && chmod 755 /entrypoint.sh
 
 EXPOSE 3306
-
-USER ${DB_UNIX_USER}
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
 

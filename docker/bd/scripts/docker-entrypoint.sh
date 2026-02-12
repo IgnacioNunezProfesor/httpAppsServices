@@ -3,24 +3,22 @@ set -euo pipefail
 
 echo "[Entrypoint] Iniciando contenedor MariaDB"
 
-: "${DB_UNIX_USER:?Falta DB_UNIX_USER}"
-: "${DB_ROOT_PASS:?Falta DB_ROOT_PASS}"
-: "${DB_SERVER_DATA_DIR:?Falta DB_SERVER_DATA_DIR}"
-: "${DB_SERVER_LOG:=/var/log/mysql}"
-: "${DB_PORT:=3306}"
+: "${SERVER_DATADIR:?Falta SERVER_DATADIR}"
+: "${SERVER_LOG:=/var/log/mysql}"
+: "${PORT:=3306}"
 
-echo "[Entrypoint] Creando usuario UNIX: ${DB_UNIX_USER}"
-if ! id "${DB_UNIX_USER}" >/dev/null 2>&1; then
-    addgroup -S "${DB_UNIX_USER}"
-    adduser -S "${DB_UNIX_USER}" -G "${DB_UNIX_USER}"
+echo "[Entrypoint] Creando usuario UNIX: $mariadb"
+if ! id "mariadb" >/dev/null 2>&1; then
+    addgroup -S "mariadb"
+    adduser -S "mariadb" -G "mariadb"
 fi
 
 mkdir -p /run/mysqld
-chown ${DB_UNIX_USER}:${DB_UNIX_USER} /run/mysqld
+chown mariadb:mariadb /run/mysqld
 chmod 777 /run/mysqld
 
-mkdir -p /entrypointsql "${DB_SERVER_DATA_DIR}" "${DB_SERVER_LOG}"
-chown -R "${DB_UNIX_USER}:${DB_UNIX_USER}" "${DB_SERVER_DATA_DIR}" "${DB_SERVER_LOG}" /entrypointsql
+mkdir -p /entrypointsql "${SERVER_DATADIR}" "${SERVER_LOG}"
+chown -R "mariadb:mariadb" "${SERVER_DATADIR}" "${SERVER_LOG}" /entrypointsql
 
 # --------------------------------------------------------------------
 # Inicializar base de datos (solo primera vez)
@@ -29,7 +27,6 @@ if [ ! -d "${DB_SERVER_DATA_DIR}/mysql" ]; then
     echo "[Entrypoint] Inicializando base de datos..."
     mariadb-install-db \
         --datadir="${DB_SERVER_DATA_DIR}" \
-        --user="${DB_UNIX_USER}" \
         --basedir=/usr \
         --auth-root-authentication-method=normal
 fi
@@ -39,7 +36,6 @@ fi
 # --------------------------------------------------------------------
 echo "[Entrypoint] Arrancando MariaDB temporalmente..."
 mariadbd \
-    --user="${DB_UNIX_USER}" \
     --datadir="${DB_SERVER_DATA_DIR}" \
     --bind-address=127.0.0.1 \
     --port="${DB_PORT}" &
@@ -55,17 +51,6 @@ until mariadb -u root -e "SELECT 1" >/dev/null 2>&1; do
 done
 echo "[Entrypoint] MariaDB está listo."
 
-# --------------------------------------------------------------------
-# Configurar root SOLO en localhost (socket)
-# --------------------------------------------------------------------
-#echo "[Entrypoint] Configurando usuario root..."
-#mariadb -u root <<EOF
-#CREATE USER 'root'@'%' IDENTIFIED BY '${DB_ROOT_PASS}';
-#CREATE USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
-#GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-#FLUSH PRIVILEGES;
-
-#EOF
 
 # --------------------------------------------------------------------
 # Ejecutar scripts init por socket
@@ -96,7 +81,6 @@ sleep 2
 # --------------------------------------------------------------------
 echo "[Entrypoint] Arrancando MariaDB en modo servidor..."
 exec mariadbd \
-    --user="${DB_UNIX_USER}" \
-    --datadir="${DB_SERVER_DATA_DIR}" \
+    --datadir="${SERVER_DATADIR}" \
     --bind-address=0.0.0.0 \
-    --port="${DB_PORT}"
+    --port="${PORT}"
