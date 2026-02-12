@@ -15,7 +15,7 @@
             "name": "Debug build.EnvFile.ps1",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/scripts/build.EnvFile.ps1 -EnvFile .\\env\\dev.apache.env",
+            "script": "${workspaceFolder}/scripts/build.EnvFile.ps1 -EnvFile .\\env\\dev.phpapache.env",
             "cwd": "${cwd}"
         },
         {

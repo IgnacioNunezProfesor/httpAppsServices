@@ -3,7 +3,11 @@ Param(
     [string]$EnvFile = ".\env\dev.apache.env"
 )
 
-Import-Module .\scripts\mods\env.ps1
+
+if (Get-Module 'env') { 
+    Remove-Module 'env' -Force 
+} 
+Import-Module .\scripts\mods\env.psm1 -Force
 
 # Cargar variables del archivo .env
 $envVars = Get-EnvVarsFromFile -envFile $EnvFile
@@ -32,22 +36,22 @@ if ($buildVars.Count -eq 0) {
 $buildArgs = EnvVarsToBuildArgs -envVars $buildVars
 
 # Construir parámetros docker
-$dockerParamsStr = @(
-    'build',
-    $buildArgs,
-    '--no-cache',
-    '-f', $Dockerfile,
-    '-t', $Tag,
-    '.'
-)
-
-Write-Host "Ejecutando: docker $($dockerParamsStr -join ' ')"
-
-docker $dockerParamsStr
-
-$code = $LASTEXITCODE
-if ($code -ne 0) {
-    Write-Error "docker build falló con código $code"
-    exit $code
-}
-
+$dockerParams = @(
+    'build') 
+if ($buildArgs.Count -gt 0) { 
+    $dockerParams += $buildArgs 
+} 
+$dockerParams += @( 
+    '--no-cache', 
+    '-f', $Dockerfile, 
+    '-t', $Tag, '.' 
+) 
+$dockerParamsStr = $dockerParams -join ' ' 
+Write-Host "Ejecutando: docker $dockerParamsStr" 
+docker @dockerParams 
+$code = $LASTEXITCODE 
+if ($code -ne 0) { 
+    Write-Error "docker build falló con código $code" 
+    exit $code 
+} 
+Write-Host "Build completado exitosamente."

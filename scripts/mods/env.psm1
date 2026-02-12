@@ -46,11 +46,13 @@ function EnvVarsToBuildArgs {
         [Parameter(Mandatory)]
         [hashtable]$envVars
     )
+    if ($envVars.Count -eq 0) { return @() }
 
-    [string]$argString = ""
+
+    $arg = @()
     foreach ($key in $envVars.Keys) {
-        $argString += "--build-arg $key=$($envVars[$key]) "
+        $arg += @("--build-arg", "$key=$($envVars[$key])")
     }
 
-    return $argString.Trim()
+    return $arg
 }
