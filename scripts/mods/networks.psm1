@@ -160,45 +160,51 @@ function Test-IpInSubnet {
         [string]$Subnet
     )
 
-    # 1. Separar la red del CIDR (ej: 192.168.1.0/24)
+    # 1. Separar red y CIDR
     $parts = $Subnet.Split('/')
     if ($parts.Count -ne 2) {
-        Write-Error "El formato del rango debe ser 'IP/Máscara' (ej: 10.0.0.0/24)"
+        Write-Error "El formato debe ser IP/CIDR (ej: 192.168.1.0/24)"
         return $false
     }
 
     $networkIp = [System.Net.IPAddress]::Parse($parts[0])
-    $cidr = [int]$parts[1]
-    $targetIp = [System.Net.IPAddress]::Parse($IP)
+    $cidr      = [int]$parts[1]
+    $targetIp  = [System.Net.IPAddress]::Parse($IP)
 
-    # 2. Convertir IP a bytes (Big Endian)
-    $networkBytes = $networkIp.GetAddressBytes()
-    $targetBytes = $targetIp.GetAddressBytes()
-
-    # Solo soportamos IPv4 para este ejemplo simple
-    if ($networkBytes.Count -ne 4) {
-        Write-Error "Esta función solo soporta IPv4."
+    # Solo IPv4
+    if ($networkIp.AddressFamily -ne [System.Net.Sockets.AddressFamily]::InterNetwork) {
+        Write-Error "Solo se soporta IPv4."
         return $false
     }
 
-    # 3. Calcular la máscara de red en formato binario
-    # Si cidr es 24, creamos un entero con 24 unos seguidos de 8 ceros
-    $mask = [uint32]0xFFFFFFFF
-    if ($cidr -lt 32) {
-        $mask = [uint32]($mask -shl (32 - $cidr))
+    if ($cidr -lt 0 -or $cidr -gt 32) {
+        Write-Error "El CIDR debe estar entre 0 y 32."
+        return $false
     }
 
-    # 4. Convertir los bytes de las IPs a enteros de 32 bits (Big Endian)
-    # Invertimos los bytes si estamos en arquitectura Little Endian (común en Windows)
-    if ([BitConverter]::IsLittleEndian) {
-        [Array]::Reverse($networkBytes)
-        [Array]::Reverse($targetBytes)
+    # 2. Bytes de red y destino
+    $networkBytes = $networkIp.GetAddressBytes()
+    $targetBytes  = $targetIp.GetAddressBytes()
+
+    # 3. Construir máscara como 4 bytes
+    $maskBytes = [byte[]](0,0,0,0)
+    for ($i = 0; $i -lt $cidr; $i++) {
+        $byteIndex = [math]::Floor($i / 8)
+        $bitIndex  = 7 - ($i % 8)
+        $maskBytes[$byteIndex] = $maskBytes[$byteIndex] -bor (1 -shl $bitIndex)
     }
 
-    $networkInt = [BitConverter]::ToUInt32($networkBytes, 0)
-    $targetInt = [BitConverter]::ToUInt32($targetBytes, 0)
+    # 4. Aplicar AND byte a byte y comparar
+    for ($i = 0; $i -lt 4; $i++) {
+        $netMasked   = $networkBytes[$i] -band $maskBytes[$i]
+        $targetMasked = $targetBytes[$i] -band $maskBytes[$i]
+        if ($netMasked -ne $targetMasked) {
+            return $false
+        }
+    }
 
-    # 5. Comparar usando operaciones Bitwise (AND)
-    # Una IP está en el rango si (IP AND MASK) == (NETWORK AND MASK)
-    return ($targetInt -band $mask) -eq ($networkInt -band $mask)
+    return $true
 }
+
+
+
