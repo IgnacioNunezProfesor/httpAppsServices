@@ -1,12 +1,5 @@
 FROM alpine:latest
 
-ENV SERVER_NAME=${SERVER_NAME}
-ENV SERVER_PORT=${SERVER_PORT}
-ENV SERVER_ROOT_PATH=${SERVER_ROOT_PATH}
-ENV SERVER_LOG_PATH=${SERVER_LOG_PATH}
-
-EXPOSE ${SERVER_PORT}
-
 RUN apk update && apk upgrade && \
     apk --no-cache add apache2 apache2-utils apache2-proxy
 
