@@ -1,6 +1,6 @@
 Param(
     [Parameter(Mandatory = $true)]
-    [string]$EnvFile = ".\env\dev.apache.env"
+    [string]$EnvFile
 )
 
 

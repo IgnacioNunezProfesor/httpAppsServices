@@ -28,13 +28,15 @@ if (-not $networkVars) {
     exit 1 
 } 
 $containername = $envVars['CONTAINER_NAME'] 
-$serverport = $envVars['SERVER_PORT'] 
-$localrootpath = $envVars['LOCAL_ROOT_PATH'] 
-$serverrootpath = $envVars['SERVER_ROOT_PATH'] 
+$serverport = $envVars['PORT'] 
+$serverdatadir = $envVars['SERVER_DATA_DIR'] 
+$localdatadir = $envVars['LOCAL_DATA_DIR'] 
+
 $locallogpath = $envVars['LOCAL_LOG_PATH'] 
 $serverlogpath = $envVars['SERVER_LOG_PATH'] 
+
 $imagename = $envVars['IMAGE_NAME'] 
-$serverip = $envVars['SERVER_IP'] 
+$ip = $envVars['IP'] 
 
 $networkname = $networkVars["NETWORK_NAME"] 
 $networkdriver = $networkVars["NETWORK_DRIVER"] 
@@ -48,10 +50,10 @@ if ($overlapResult.Overlaps) {
     exit 1 
 }
 
-$InRangeIpResult = Test-IpInSubnet -IP $serverip -Subnet $networksubnet
+$InRangeIpResult = Test-IpInSubnet -IP $ip -Subnet $networksubnet
 
-if (-not $InRangeIpResult.InRange ) {
-    Write-Error "La IP $serverip no está dentro de la subred $networksubnet. Por favor, elija una IP que esté dentro de la subred." 
+if (-not $InRangeIpResult ) {
+    Write-Error "La IP $ip no está dentro de la subred $networksubnet. Por favor, elija una IP que esté dentro de la subred." 
     exit 1 
 } 
 
@@ -73,12 +75,12 @@ $dockerCmd = @(
     "docker run -d",
     "--name $containername",
     "-p ${serverport}:${serverport}",
-    "-v ${localrootpath}:${serverrootpath}",
+    "-v ${localdatadir}:${serverdatadir}",
     "-v ${locallogpath}:${serverlogpath}",
     "--env-file $envFile",
     "--hostname $containername",
     "--network $networkname",
-    "--ip $serverip",
+    "--ip $ip",
     $imagename
 ) -join ' '
 
