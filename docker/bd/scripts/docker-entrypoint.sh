@@ -3,32 +3,36 @@ set -euo pipefail
 
 echo "[Entrypoint] Iniciando contenedor MariaDB"
 
-: "${SERVER_DATADIR:?Falta SERVER_DATADIR}"
-: "${SERVER_LOG:=/var/log/mysql}"
+# --------------------------------------------------------------------
+# Validación de variables obligatorias
+# --------------------------------------------------------------------
+: "${SERVER_DATA_DIR:?Falta SERVER_DATA_DIR}"
+: "${SERVER_LOG_PATH:=/var/log/mysql}"
 : "${PORT:=3306}"
+: "${DB_NAME:?Falta DB_NAME}"
+: "${DB_USER:?Falta DB_USER}"
+: "${DB_PASS:?Falta DB_PASS}"
 
-echo "[Entrypoint] Creando usuario UNIX: $mariadb"
-if ! id "mariadb" >/dev/null 2>&1; then
-    addgroup -S "mariadb"
-    adduser -S "mariadb" -G "mariadb"
-fi
-
+# --------------------------------------------------------------------
+# Preparar directorios necesarios
+# --------------------------------------------------------------------
 mkdir -p /run/mysqld
-chown mariadb:mariadb /run/mysqld
-chmod 777 /run/mysqld
+chown mysql:mysql /run/mysqld
+chmod 755 /run/mysqld
 
-mkdir -p /entrypointsql "${SERVER_DATADIR}" "${SERVER_LOG}"
-chown -R "mariadb:mariadb" "${SERVER_DATADIR}" "${SERVER_LOG}" /entrypointsql
+mkdir -p /entrypointsql "${SERVER_DATA_DIR}" "${SERVER_LOG_PATH}"
+chown -R mysql:mysql "${SERVER_DATA_DIR}" "${SERVER_LOG_PATH}" /entrypointsql
 
 # --------------------------------------------------------------------
 # Inicializar base de datos (solo primera vez)
 # --------------------------------------------------------------------
-if [ ! -d "${DB_SERVER_DATA_DIR}/mysql" ]; then
+if [ ! -d "${SERVER_DATA_DIR}/mysql" ]; then
     echo "[Entrypoint] Inicializando base de datos..."
     mariadb-install-db \
-        --datadir="${DB_SERVER_DATA_DIR}" \
+        --datadir="${SERVER_DATA_DIR}" \
         --basedir=/usr \
-        --auth-root-authentication-method=normal
+        --auth-root-authentication-method=normal \
+        --user=mysql
 fi
 
 # --------------------------------------------------------------------
@@ -36,21 +40,21 @@ fi
 # --------------------------------------------------------------------
 echo "[Entrypoint] Arrancando MariaDB temporalmente..."
 mariadbd \
-    --datadir="${DB_SERVER_DATA_DIR}" \
+    --user=mysql \
+    --datadir="${SERVER_DATA_DIR}" \
     --bind-address=127.0.0.1 \
-    --port="${DB_PORT}" &
+    --port=3307 &
 TEMP_PID=$!
 
 # --------------------------------------------------------------------
 # Esperar a que esté listo (por socket, sin contraseña)
 # --------------------------------------------------------------------
 echo "[Entrypoint] Esperando a que MariaDB esté listo..."
-until mariadb -u root -e "SELECT 1" >/dev/null 2>&1; do
+until mariadb -h 127.0.0.1 -P 3307 -u root -e "SELECT 1" >/dev/null 2>&1; do
     echo "[Entrypoint] MariaDB no responde todavía..."
     sleep 1
 done
 echo "[Entrypoint] MariaDB está listo."
-
 
 # --------------------------------------------------------------------
 # Ejecutar scripts init por socket
@@ -64,23 +68,22 @@ for f in /entrypointsql/init*.sql; do
         -e "s|\${DB_NAME}|${DB_NAME}|g" \
         -e "s|\${DB_USER}|${DB_USER}|g" \
         -e "s|\${DB_PASS}|${DB_PASS}|g" \
-        "$f" | mariadb -u root
+        "$f" | mariadb -h 127.0.0.1 -P 3307 -u root
 done
-
-
 
 # --------------------------------------------------------------------
 # Parar servidor temporal
 # --------------------------------------------------------------------
 echo "[Entrypoint] Deteniendo servidor temporal..."
 kill "$TEMP_PID"
-sleep 2
+wait "$TEMP_PID"
 
 # --------------------------------------------------------------------
 # Arranque final (PID 1, accesible desde fuera)
 # --------------------------------------------------------------------
 echo "[Entrypoint] Arrancando MariaDB en modo servidor..."
 exec mariadbd \
-    --datadir="${SERVER_DATADIR}" \
+    --user=mysql \
+    --datadir="${SERVER_DATA_DIR}" \
     --bind-address=0.0.0.0 \
     --port="${PORT}"
