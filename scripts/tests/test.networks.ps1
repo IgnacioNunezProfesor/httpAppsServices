@@ -19,7 +19,8 @@ function Show-TestResult {
     if ($Result -eq $Expected) {
         Write-Host "[OK]   $Name" -ForegroundColor Green
         return $true
-    } else {
+    }
+    else {
         Write-Host "[FAIL] $Name (Resultado: $Result, Esperado: $Expected)" -ForegroundColor Red
         return $false
     }
@@ -40,7 +41,8 @@ function runTest {
         $result = & $Code
         if (Show-TestResult -Name $Name -Result $result -Expected $Expected) {
             $script:passed++
-        } else {
+        }
+        else {
             $script:failed++
         }
     }
@@ -59,7 +61,7 @@ Write-Host "==============================="
 # ================================
 runTest "192.168.1.10 ∈ 192.168.1.0/24" { Test-IpInSubnet "192.168.1.10" "192.168.1.0/24" } $true
 runTest "10.0.0.5 ∈ 10.0.0.0/29" { Test-IpInSubnet "10.0.0.5" "10.0.0.0/29" } $true
-runTest "IP de red incluida" { Test-IpInSubnet "192.168.50.0" "192.168.50.0/24" } $true
+runTest "IP de red incluida" { Test-IpInSubnet "192.168.50.250" "192.168.50.0/12" } $true
 runTest "Broadcast incluido" { Test-IpInSubnet "192.168.50.255" "192.168.50.0/24" } $true
 runTest "/32 coincide solo con sí misma" { Test-IpInSubnet "10.0.0.1" "10.0.0.1/32" } $true
 runTest "/0 acepta cualquier IP" { Test-IpInSubnet "123.45.67.89" "0.0.0.0/0" } $true

@@ -19,6 +19,13 @@
             "cwd": "${cwd}"
         },
         {
+            "name": "Debug test.network.ps1",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\scripts\\tests\\test.networks.ps1",
+            "cwd": "${cwd}"
+        },
+        {
             "name": "Debug run.FromEnvFile.ps1",
             "type": "PowerShell",
             "request": "launch",
