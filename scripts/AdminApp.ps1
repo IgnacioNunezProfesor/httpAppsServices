@@ -1,8 +1,19 @@
-if (Get-Module 'AppFromGit') { 
-    Remove-Module 'AppFromGit' -Force 
-} 
+param(
+    [switch]$Add,
+    [switch]$Remove,
+    [switch]$RemoveAll,
+    [string]$Name,
+    [string]$Url,
+    [string]$Path
+)
+
+# Recargar módulo
+if (Get-Module 'AppFromGit') {
+    Remove-Module 'AppFromGit' -Force
+}
 Import-Module .\scripts\mods\AppFromGit.psm1 -Force
-function Main {
+
+function MainMenu {
     Write-Host "============================="
     Write-Host "   Gestión de Submódulos"
     Write-Host "============================="
@@ -38,4 +49,31 @@ function Main {
     }
 }
 
-Main
+# --- LÓGICA PRINCIPAL ---
+
+# Si el usuario pasa parámetros, ejecutamos directamente
+if ($Add) {
+    if (-not $Name -or -not $Url -or -not $Path) {
+        Write-Host "Faltan parámetros: -Name -Url -Path" -ForegroundColor Red
+        exit 1
+    }
+    Add-AppFromGit -SubmoduleName $Name -GitHubUrl $Url -DestinationPath $Path
+    exit
+}
+
+if ($Remove) {
+    if (-not $Path) {
+        Write-Host "Falta parámetro: -Path" -ForegroundColor Red
+        exit 1
+    }
+    Remove-App -SubmodulePath $Path
+    exit
+}
+
+if ($RemoveAll) {
+    Remove-AllApps
+    exit
+}
+
+# Si no hay parámetros → mostrar menú
+MainMenu
