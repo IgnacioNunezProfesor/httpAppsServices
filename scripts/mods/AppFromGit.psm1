@@ -30,9 +30,7 @@ function Add-AppFromGit {
         exit 1
     }
 }
-
-
-function removeAppFromProject() {
+function   Remove-AllApps() {
     # Elimina TODOS los submódulos de un repositorio Git
     # Ignacio: este script limpia .gitmodules, .git/config, .git/modules y el working tree
 
@@ -94,4 +92,44 @@ function removeAppFromProject() {
 
     Write-Host "`n✅ Todos los submódulos han sido eliminados completamente." -ForegroundColor Green
 
+}
+function Remove-App {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SubmodulePath
+    )
+
+    if (!(Test-Path ".gitmodules")) {
+        Write-Host "No existe .gitmodules. No hay submódulos que eliminar." -ForegroundColor Yellow
+        exit
+    }
+
+    # Verificar que el submódulo existe en .gitmodules
+    $exists = Select-String -Path ".gitmodules" -Pattern "path = $SubmodulePath"
+
+    if (-not $exists) {
+        Write-Host "El submódulo '$SubmodulePath' no existe." -ForegroundColor Red
+        exit
+    }
+
+    Write-Host "Eliminando submódulo: $SubmodulePath" -ForegroundColor Cyan
+
+    git submodule deinit -f $SubmodulePath | Out-Null
+    git rm -f $SubmodulePath | Out-Null
+
+    if (Test-Path $SubmodulePath) {
+        Remove-Item -Recurse -Force $SubmodulePath
+        Write-Host "Carpeta eliminada: $SubmodulePath"
+    }
+
+    $modulePath = ".git/modules/$SubmodulePath"
+    if (Test-Path $modulePath) {
+        Remove-Item -Recurse -Force $modulePath
+        Write-Host "Carpeta interna eliminada: $modulePath"
+    }
+
+    git add -A
+    git commit -m "Remove submodule $SubmodulePath" | Out-Null
+
+    Write-Host "Submódulo eliminado correctamente." -ForegroundColor Green
 }
