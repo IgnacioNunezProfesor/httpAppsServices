@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  db:
+    image: ${DB_IMAGE_NAME}
+    container_name: ${DB_CONTAINER_NAME}
+    restart: always
+    environment:
+      - PORT: ${DB_PORT}
+      - SERVER_DATA_DIR: ${DB_SERVER_DATA_DIR}
+      - LOCAL_DATA_DIR: ${DB_LOCAL_DATA_DIR}
+      - SERVER_LOG_PATH: ${DB_SERVER_LOG}
+      - LOCAL_LOG_PATH: ${DB_LOCAL_LOG_PATH}
+      - DB_NAME: ${DB_NAME}
+      - DB_USER: ${DB_USER}
+      - DB_PASS: ${DB_PASS}
+      - IP: ${DB_IP}
+      - NETWORK_NAME: ${NETWORK_NAME}
+    volumes:
+      - ${DB_LOCAL_DATA_DIR}:${DB_SERVER_DATA_DIR}
+      - ${DB_LOCAL_LOG}:${DB_SERVER_LOG}
+
+  http:
+    image: ${HTTP_IMAGE_NAME}
+    container_name: ${HTTP_CONTAINER_NAME}
+    restart: always
+    ports:
+      - "${HTTP_PORT}:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wp_data:/var/www/html
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+  wp_data:

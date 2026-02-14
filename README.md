@@ -1,43 +1,41 @@
-# httpAppsServices
+# Documentación de Scripts - httpAppsServices
 
-Entorno de desarrollo orientado a aplicaciones web y servicios HTTP, con integración de WordPress como submódulo, utilidades en PowerShell y soporte para múltiples bases de datos mediante Docker.
+## 📋 Descripción General
 
-## 🚀 Objetivo del proyecto
+La carpeta `scripts/` contiene utilidades de automatización desarrolladas en PowerShell diseñadas para facilitar la gestión, despliegue y mantenimiento del entorno de desarrollo de aplicaciones web y servicios HTTP.
 
-Proporcionar un entorno unificado para:
+## 🎯 Propósito de los Scripts
 
-- Ejecutar servicios web.
-- Acceder a distintas bases de datos desde scripts y aplicaciones.
-- Integrar WordPress dentro de un flujo de desarrollo más amplio.
-- Automatizar tareas mediante PowerShell y Shell.
+Los scripts en este proyecto están orientados a:
 
+- **Automatización de tareas repetitivas** en el ciclo de desarrollo
+- **Gestión de contenedores Docker** y servicios asociados
+- **Configuración del entorno** de desarrollo
+- **Despliegue y actualización** de componentes
+- **Utilidades de diagnóstico y mantenimiento**
+- **Integración con aplicaciones desde GIT** y bases de datos
 
-## 📁 Estructura del repositorio
+## 🔧 Scripts Disponibles
 
-- **docker/** — Configuración para acceso a bases de datos y servicios en contenedores.
-- **scripts/** — Scripts PowerShell y Shell para automatización y utilidades.
-- **wordpress/** — Submódulo con WordPress incluido en el proyecto.
-- **wwwroot/** — Archivos accesibles desde el servidor web.
-- **phpinfo/** — Utilidad para diagnóstico del entorno PHP.
-- **.vscode/** — Configuración del entorno de desarrollo.
-- **.gitmodules** — Declaración del submódulo WordPress.
+Cada script debe documentarse con:
 
+- **Nombre y propósito** específico
+- **Parámetros requeridos y opcionales**
+- **Ejemplos de uso**
+- **Dependencias** del sistema
+- **Valores de retorno** esperados
 
-## 🛠️ Tecnologías utilizadas
+## 📌 Convenciones
 
-- **PowerShell** (≈57%)
-- **Shell**
-- **PHP**
-- **Docker**
-- **HTML / CSS**
+- Scripts en **PowerShell** (.ps1) para tareas de administración en Windows
+- Nombres descriptivos en inglés o español según contexto
+- Comentarios en cabecera explicando funcionalidad principal
 
-## 🧩 Funcionalidades destacadas
+## ⚙️ Integración
 
-- Acceso centralizado a múltiples bases de datos.
-- Scripts reutilizables para despliegue y mantenimiento.
-- Integración de WordPress como parte del entorno de pruebas.
-- Configuración lista para usar en VS Code.
+Los scripts interactúan con:
 
-
-
-
+- Configuración en `docker/` para servicios containerizados
+- Carpeta `wwwroot/` para despliegue de contenido web
+- Submódulo `wordpress/` para gestión de la instalación
+- Entorno de VS Code mediante `.vscode/`
