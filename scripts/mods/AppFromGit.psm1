@@ -66,7 +66,7 @@ function   Remove-AllApps() {
         git submodule deinit -f $sub | Out-Null
 
         # Eliminar del índice
-        git rm -f $sub | Out-Null
+        git rm -rf --cached$sub | Out-Null
 
         # Eliminar carpeta física
         if (Test-Path $sub) {
