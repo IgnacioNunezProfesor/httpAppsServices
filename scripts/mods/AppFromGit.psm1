@@ -10,6 +10,12 @@ function Add-AppFromGit {
         [string]$DestinationPath
     )
 
+    # Verificar si el submódulo ya existe
+    if (Test-AppExists -SubmoduleName $SubmoduleName) {
+        Write-Host "El submódulo '$SubmoduleName' ya existe. No se realiza ninguna acción." -ForegroundColor Yellow
+        return
+    }
+
     try {
         Write-Host "Adding submodule: $SubmoduleName"
         Write-Host "From: $GitHubUrl"

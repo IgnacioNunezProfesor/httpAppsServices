@@ -2,6 +2,9 @@ services:
   db:
     image: ${DB_IMAGE_NAME}
     container_name: ${DB_CONTAINER_NAME}
+    build:
+      context: ..\..\
+      dockerfile: ${DB_DOCKERFILE_PATH}
     restart: always
     environment:
       PORT: ${DB_PORT}
@@ -16,11 +19,14 @@ services:
       NETWORK_NAME: ${NETWORK_NAME}
     volumes:
       - ${DB_LOCAL_DATA_DIR}:${DB_SERVER_DATA_DIR}
-      - ${DB_LOCAL_LOG}:${DB_SERVER_LOG}
+      - ${DB_LOCAL_LOG_PATH}:${DB_SERVER_LOG}
 
   http:
     image: ${HTTP_IMAGE_NAME}
     container_name: ${HTTP_CONTAINER_NAME}
+    build:
+      context: ..\..\
+      dockerfile: ${HTTP_DOCKERFILE_PATH}
     restart: always
     ports:
       - "${HTTP_PORT}:80"
@@ -43,7 +49,7 @@ services:
       - ${HTTP_LOCAL_LOG_PATH}:${HTTP_SERVER_LOG_PATH}
     depends_on:
       - db
-nerworks:
+networks:
   ${NETWORK_NAME}:
     driver: ${NETWORK_DRIVER}
     ipam:

@@ -20,13 +20,9 @@ if (-not $envVars) {
     exit 1 
 } 
 
-if (-not (Test-AppExists -SubmoduleName $envVars.APP_NAME)) {
-    Write-Host "Git module not found at $gitModulePath. Cloning from $($envVars.APP_GITHUB_URL)..."
-    .\scripts\AdminApp.ps1 -action clone -repoUrl $envVars.APP_GITHUB_URL -destinationPath $gitModulePath
-}
-else {
-    Write-Host "Git module found at $gitModulePath"
-}
+
+.\scripts\AdminApp.ps1 -add -Name $envVars.APP_NAME -Url $envVars.APP_GITHUB_URL -Path $envVars.APP_LOCAL_PATH
+
 
 
 docker compose -f $envVars.APP_COMPOSER_PATH --env-file $EnvFile up -d
