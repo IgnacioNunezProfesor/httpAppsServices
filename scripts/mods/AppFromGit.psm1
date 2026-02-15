@@ -133,3 +133,17 @@ function Remove-App {
 
     Write-Host "Submódulo eliminado correctamente." -ForegroundColor Green
 }
+
+function Test-AppExists {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SubmoduleName
+    )
+
+    if (!(Test-Path ".gitmodules")) {
+        return $false
+    }
+
+    $exists = Select-String -Path ".gitmodules" -Pattern "path = $SubmoduleName" -ErrorAction SilentlyContinue
+    return $null -ne $exists
+}

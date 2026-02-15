@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug run.Wordpress.ps1",
+            "name": "Debug runAppEnvFile.ps1",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/scripts/run.Wordpress.ps1",
+            "script": "${workspaceFolder}/scripts/runAppEnvFile.ps1 .\\env\\dev.wordpress.env",
             "cwd": "${cwd}"
         },
         {
