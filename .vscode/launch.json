@@ -59,7 +59,7 @@
             "type": "msedge",
             "url": "http://wordpress.localhost:82",
             "webRoot": "${workspaceFolder}/wordpress"
-        },
+        }
     ],
     "compounds": [
         {
@@ -67,6 +67,20 @@
             "configurations": [
                 "Launch phpinfo phpapache edge",
                 "Launch phpapache edge"
+            ]
+        },
+        {
+            "name": "Launch Edge Headless and attach DevTools",
+            "configurations": [
+                "Launch Microsoft Edge in headless mode",
+                "Open Edge DevTools"
+            ]
+        },
+        {
+            "name": "Launch Edge and attach DevTools",
+            "configurations": [
+                "Launch Microsoft Edge",
+                "Open Edge DevTools"
             ]
         }
     ]
