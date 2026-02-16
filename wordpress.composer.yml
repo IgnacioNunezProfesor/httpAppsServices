@@ -3,7 +3,7 @@ services:
     image: ${DB_IMAGE_NAME}
     container_name: ${DB_CONTAINER_NAME}
     build:
-      context: ..\..\
+      context: .
       dockerfile: ${DB_DOCKERFILE_PATH}
     restart: always
     environment:
@@ -25,7 +25,7 @@ services:
     image: ${HTTP_IMAGE_NAME}
     container_name: ${HTTP_CONTAINER_NAME}
     build:
-      context: ..\..\
+      context: .
       dockerfile: ${HTTP_DOCKERFILE_PATH}
     restart: always
     ports:
