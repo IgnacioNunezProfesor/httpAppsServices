@@ -2,10 +2,12 @@ param(
     [switch]$Add,
     [switch]$Remove,
     [switch]$RemoveAll,
+    [switch]$Update,
     [switch]$Help,
     [string]$Name,
     [string]$Url,
-    [string]$Path
+    [string]$Path,
+    [string]$Target
 )
 
 # Recargar módulo
@@ -34,10 +36,10 @@ function Show-Help {
     Write-Host "  Eliminar todos:"
     Write-Host "  .\AdminApp.ps1 -RemoveAll"
     Write-Host ""
-    Write-Host "EJEMPLOS:"
-    Write-Host "  .\AdminApp.ps1 -Add -Name MyApp -Url https://github.com/user/repo -Path ./apps"
-    Write-Host "  .\AdminApp.ps1 -Remove -Path ./apps/MyApp"
-    Write-Host "  .\AdminApp.ps1 -RemoveAll"
+    Write-Host "  Actualizar submódulos:"
+    Write-Host "  .\AdminApp.ps1 -Update -Target all"
+    Write-Host "  .\AdminApp.ps1 -Update -Target <ruta>"
+    Write-Host ""
     Write-Host "============================="
 }
 
@@ -48,7 +50,8 @@ function MainMenu {
     Write-Host "1. Añadir submódulo"
     Write-Host "2. Eliminar un submódulo"
     Write-Host "3. Eliminar TODOS los submódulos"
-    Write-Host "4. Ayuda"
+    Write-Host "4. Actualizar submódulos"
+    Write-Host "5. Ayuda"
     Write-Host "0. Salir"
     Write-Host "============================="
 
@@ -72,6 +75,25 @@ function MainMenu {
             MainMenu
         }
         "4" {
+            Write-Host "1. Actualizar TODOS los submódulos"
+            Write-Host "2. Actualizar un submódulo específico"
+            $opt = Read-Host "Selecciona una opción"
+
+            switch ($opt) {
+                "1" {
+                    Update-App -Target "all"
+                }
+                "2" {
+                    $target = Read-Host "Ruta del submódulo a actualizar"
+                    Update-App -Target $target
+                }
+                default {
+                    Write-Host "Opción no válida." -ForegroundColor Red
+                }
+            }
+            MainMenu
+        }
+        "5" {
             Show-Help
             MainMenu
         }
@@ -115,6 +137,15 @@ if ($Remove) {
 
 if ($RemoveAll) {
     Remove-AllApps
+    exit
+}
+
+if ($Update) {
+    if (-not $Target) {
+        Write-Host "Falta parámetro: -Target (all o ruta)" -ForegroundColor Red
+        exit 1
+    }
+    Update-App -Target $Target
     exit
 }
 

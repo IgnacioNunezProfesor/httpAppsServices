@@ -153,3 +153,53 @@ function Test-AppExists {
     $exists = Select-String -Path ".gitmodules" -Pattern "path = $SubmoduleName" -ErrorAction SilentlyContinue
     return $null -ne $exists
 }
+
+function Update-App {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Target
+    )
+
+    if (!(Test-Path ".gitmodules")) {
+        Write-Host "No existe .gitmodules. No hay submódulos que actualizar." -ForegroundColor Yellow
+        return
+    }
+
+    # Obtener lista de submódulos
+    $submodules = Select-String -Path ".gitmodules" -Pattern "path = " |
+    ForEach-Object { ($_ -split "path = ")[1].Trim() }
+
+    if ($submodules.Count -eq 0) {
+        Write-Host "No se encontraron submódulos en .gitmodules." -ForegroundColor Yellow
+        return
+    }
+
+    if ($Target -eq "all") {
+        Write-Host "Actualizando TODOS los submódulos..." -ForegroundColor Cyan
+        git submodule update --remote --merge
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Todos los submódulos han sido actualizados correctamente." -ForegroundColor Green
+        }
+        else {
+            Write-Host "Error al actualizar los submódulos." -ForegroundColor Red
+        }
+        return
+    }
+
+    # Actualizar un submódulo específico
+    if ($submodules -notcontains $Target) {
+        Write-Host "El submódulo '$Target' no existe." -ForegroundColor Red
+        return
+    }
+
+    Write-Host "Actualizando submódulo: $Target" -ForegroundColor Cyan
+    git submodule update --remote --merge $Target
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Submódulo '$Target' actualizado correctamente." -ForegroundColor Green
+    }
+    else {
+        Write-Host "Error al actualizar el submódulo '$Target'." -ForegroundColor Red
+    }
+}
