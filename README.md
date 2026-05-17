@@ -39,3 +39,45 @@ Los scripts interactúan con:
 - Carpeta `wwwroot/` para despliegue de contenido web
 - Submódulo `wordpress/` para gestión de la instalación
 - Entorno de VS Code mediante `.vscode/`
+
+## 🚀 Uso del proyecto
+
+1. Abrir PowerShell como administrador.
+2. Navegar a la carpeta raíz del proyecto:
+   - `cd C:\Users\inr_j\httpAppsServices`
+3. Revisar los archivos de entorno en `env/` antes de ejecutar scripts.
+4. Ejecutar los scripts de administración desde la raíz. Por ejemplo:
+    - .\scripts\AdminApp.ps1
+    - .\scripts\build.EnvFile.ps1
+5. Usar los scripts bajo `scripts/` para las tareas principales de configuración y despliegue.
+
+> Nota: los scripts están pensados para PowerShell en Windows y pueden requerir permisos de ejecución. Si es necesario, habilite la ejecución con:
+> `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+
+## 🧪 Pruebas
+
+Este repositorio incluye pruebas manuales básicas para la validación de funciones de red.
+
+### Ejecutar pruebas paso a paso
+
+1. Abrir PowerShell en la raíz del repositorio:
+   - `cd C:\Users\inr_j\httpAppsServices`
+2. Ejecutar el script de prueba ubicado en `scripts/tests`:
+    - .\scripts\tests\test.networks.ps1
+3. Verificar los resultados mostrados en la consola.
+
+### Qué comprueba la prueba
+
+- Validación de direcciones IP dentro o fuera de una subred (`Test-IpInSubnet`)
+- Comportamiento correcto para máscaras `/32` y `/0`
+- Manejo de entradas inválidas y errores esperados
+
+### Resultado esperado
+
+Al finalizar, el script muestra:
+
+- `Pasados: X`
+- `Fallados: Y`
+
+Si `Y` es mayor que 0, revise el módulo `scripts\mods
+etworks.psm1` y el script de prueba para encontrar la causa.
