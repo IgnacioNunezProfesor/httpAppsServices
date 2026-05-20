@@ -1,33 +1,107 @@
 param(
-    [Parameter(Mandatory=$true)]
-    [string]$Target,
-
-    [string]$Params = "",
-    [string]$ImageName = "auditoria-web",
-    [string]$ContainerName = "auditoria-web-container",
-    [string]$ResultsDir = "./results"
+    [Parameter(Mandatory = $true)]
+    [string]$EnvFile
 )
+
+# Validar que el archivo .env existe
+if (-not (Test-Path $EnvFile)) {
+    Write-Host "[-] Error: Archivo .env no encontrado: $EnvFile"
+    exit 1
+}
+
+# Leer el archivo .env y asignar las variables
+$envContent = Get-Content $EnvFile
+$dockerfilePath = ""
+$containerName = ""
+$targetUrl = ""
+$resultsFilePath = ""
+$executionParams = ""
+
+foreach ($line in $envContent) {
+    $line = $line.Trim()
+    
+    # Saltar líneas vacías y comentarios
+    if ([string]::IsNullOrEmpty($line) -or $line.StartsWith("#")) {
+        continue
+    }
+    
+    # Parsear variables del archivo .env
+    if ($line -match "^DOCKERFILE_PATH=(.*)$") {
+        $dockerfilePath = $matches[1].Trim('"')
+    }
+    elseif ($line -match "^CONTAINER_NAME=(.*)$") {
+        $containerName = $matches[1].Trim('"')
+    }
+    elseif ($line -match "^TARGET_URL=(.*)$") {
+        $targetUrl = $matches[1].Trim('"')
+    }
+    elseif ($line -match "^RESULTS_FILE_PATH=(.*)$") {
+        $resultsFilePath = $matches[1].Trim('"')
+    }
+    elseif ($line -match "^EXECUTION_PARAMS=(.*)$") {
+        $executionParams = $matches[1].Trim('"')
+    }
+}
+
+# Validar que todas las variables requeridas están presentes
+if ([string]::IsNullOrEmpty($dockerfilePath) -or [string]::IsNullOrEmpty($containerName) -or 
+    [string]::IsNullOrEmpty($targetUrl) -or [string]::IsNullOrEmpty($resultsFilePath)) {
+    Write-Host "[-] Error: Variables requeridas faltantes en el archivo .env"
+    exit 1
+}
+
+Write-Host "[+] Variables cargadas desde $EnvFile"
+Write-Host "    DOCKERFILE_PATH: $dockerfilePath"
+Write-Host "    CONTAINER_NAME: $containerName"
+Write-Host "    TARGET_URL: $targetUrl"
+Write-Host "    RESULTS_FILE_PATH: $resultsFilePath"
+Write-Host "    EXECUTION_PARAMS: $executionParams"
+
+# Extraer el nombre de la imagen del Dockerfile
+$imageName = $containerName
 
 Write-Host "[+] Comprobando si la imagen existe..."
 
 # Construir imagen si no existe
-$imageExists = docker images -q $ImageName
+$imageExists = docker images -q $imageName
 if (-not $imageExists) {
-    Write-Host "[+] Imagen no encontrada. Construyendo..."
-    docker build -t $ImageName .
+    Write-Host "[+] Imagen no encontrada. Construyendo desde $dockerfilePath..."
+    Write-Host "[+] Lanzando docker build -f $dockerfilePath -t $imageName ."
+    
+    docker build -f $dockerfilePath -t $imageName .
+    # Comprobar si el comando docker build se ejecutó correctamente
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[-] Error: Falló la construcción de la imagen. Código de salida: $LASTEXITCODE"
+        exit 1
+    }
 }
 
-# Crear carpeta de resultados
-if (-not (Test-Path $ResultsDir)) {
-    New-Item -ItemType Directory -Path $ResultsDir | Out-Null
+Write-Host "[+] Comprobando que $resultsFilePath existe"
+# Crear carpeta de resultados si no existe
+if (-not (Test-Path $resultsFilePath)) {
+    Write-Host "Creando $resultsFilePath"
+    New-Item -ItemType Directory -Path $resultsFilePath | Out-Null
 }
 
 Write-Host "[+] Ejecutando contenedor..."
 
-docker run --rm `
-    -v "$(Resolve-Path $ResultsDir):/analysis/results" `
-    --name $ContainerName `
-    $ImageName `
-    bash -c "./run-analysis.sh -t $Target $Params"
+$dockerfileDir = Split-Path -Parent $dockerfilePath
+$hostScriptPath = Join-Path $dockerfileDir "run-analysis.sh"
+$scriptVolume = ""
 
-Write-Host "[+] Análisis completado. Resultados en $ResultsDir"
+if (Test-Path $hostScriptPath) {
+    Write-Host "[+] Montando script local de análisis: $hostScriptPath"
+    $scriptVolume = "-v \"$(Resolve-Path $hostScriptPath):/analysis/run-analysis.sh\""
+}
+else {
+    Write-Host "[!] Aviso: run-analysis.sh no encontrado en $dockerfileDir. Se usará la versión de la imagen si existe."
+}
+
+docker run --rm `
+    -v "$(Resolve-Path $resultsFilePath):/analysis/results" `
+    $scriptVolume `
+    --name $containerName `
+    $imageName `
+    bash -c "/analysis/run-analysis.sh -t $targetUrl $executionParams"
+
+Write-Host "[+] Análisis completado. Resultados en $resultsFilePath"

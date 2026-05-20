@@ -31,11 +31,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ruby \
     nmap \
-    nikto \
     whatweb \
+    perl \
+    git \
     bash \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Instalar Nikto manualmente
+RUN git clone https://github.com/sullo/nikto.git /opt/nikto \
+    && ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto
 
 # Copiar sqlmap desde builder
 COPY --from=builder /opt/sqlmap /opt/sqlmap
@@ -43,7 +48,9 @@ COPY --from=builder /opt/sqlmap /opt/sqlmap
 # Copiar WPScan ya instalado
 COPY --from=builder /usr/local/bin/wpscan /usr/local/bin/wpscan
 COPY --from=builder /var/lib/gems /var/lib/gems
-COPY --from=builder /usr/local/lib/ruby /usr/local/lib/ruby
+COPY --from=builder /usr/lib/ruby /usr/lib/ruby
+COPY --from=builder /usr/share/rubygems-integration /usr/share/rubygems-integration
+
 
 # Añadir sqlmap al PATH
 ENV PATH="/opt/sqlmap:$PATH"
@@ -53,7 +60,7 @@ RUN mkdir -p /analysis/results
 WORKDIR /analysis
 
 # Copiar script bash
-COPY run-analysis.sh /analysis/run-analysis.sh
+COPY ./tools/sqlmap/run-analysis.sh /analysis/run-analysis.sh
 RUN chmod +x /analysis/run-analysis.sh
 
 CMD ["/bin/bash"]
