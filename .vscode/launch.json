@@ -33,6 +33,13 @@
             "cwd": "${cwd}"
         },
         {
+            "name": "Debug launchSecurityanalizer.ps1",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\scripts\\launchSecurityanalizer.ps1",
+            "cwd": "${cwd}"
+        },
+        {
             "name": "Launch apache edge",
             "request": "launch",
             "type": "msedge",
