@@ -8,8 +8,8 @@ RUN apk update && apk upgrade && \
 
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
 COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
-COPY ./docker/phpapache/php/php.ini /etc/php84/
-COPY ./docker/phpapache/php/conf.d/*.ini /etc/php84/conf.d/
+COPY ./docker/phpapache/php/php.ini /etc/php85/
+COPY ./docker/phpapache/php/conf.d/*.ini /etc/php85/conf.d/
 
 # Script de entrada para expandir variables
 COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh
