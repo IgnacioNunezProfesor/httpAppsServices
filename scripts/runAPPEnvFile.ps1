@@ -29,24 +29,39 @@ docker compose -f $envVars.APP_COMPOSER_PATH --env-file $EnvFile up -d
 # Esperar a que el contenedor esté listo
 Start-Sleep -Seconds 3
 
-# Obtener nombre del contenedor (por servicio)
-$containerName = docker compose -f $envVars.APP_COMPOSER_PATH ps --services | Select-Object -First 1
-$containerId = docker ps --filter "name=$containerName" --format "{{.ID}}"
+# Get container name (by service)
+$containerName = $envVars.HTTP_CONTAINER_NAME
+Write-Host "Searching for container: $containerName"
 
-if (-not $containerId) {
-    Write-Error "No se encontró el contenedor del servicio $containerName"
+# Use exact match with regex anchor (^ and $)
+$containerIds = @(docker ps --filter "name=^$containerName`$" --format "{{.ID}}")
+$containerCount = $containerIds.Count
+
+Write-Host "Found $containerCount container(s)"
+
+if ($containerCount -eq 0) {
+    Write-Error "No container found for service $containerName"
+    exit 1
+}
+elseif ($containerCount -gt 1) {
+    Write-Error "Multiple containers found for service $containerName`:"
+    foreach ($id in $containerIds) {
+        $name = docker ps --filter "id=$id" --format "{{.Names}}"
+        Write-Error "  - $name (ID: $id)"
+    }
     exit 1
 }
 
-Write-Host "Contenedor detectado: $containerId"
+$containerId = $containerIds[0]
+Write-Host "Container detected: $containerId"
+# Copy entrypoint to container
+Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT) to container..."
+# Copy to container
+docker cp $envVars.APP_ENTRYPOINT_PATH "${containerId}:/entrypoint-app.sh"
+# Set execute permissions
+Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT)..."
 
-# Copiar entrypoint dentro del contenedor
-Write-Host "Copiando entrypoint $($envVars.APP_ENTRYPOINT) dentro del contenedor..."
-docker cp $envVars.APP_ENTRYPOINT_PATH "${containerId}:/$envVars.APP_ENTRYPOINT"
-
-# Dar permisos de ejecución
-docker exec $containerId chmod +x /entrypoint.sh
-
-# Ejecutar entrypoint dentro del contenedor
-Write-Host "Ejecutando entrypoint dentro del contenedor..."
-docker exec -it $containerId /entrypoint.sh
+docker exec $containerId chmod +x /entrypoint-app.sh
+docker exec $containerId dos2unix /entrypoint-app.sh
+Write-Host "Executing entrypoint in container..."
+docker exec -it $containerId /entrypoint-app.sh

@@ -1,87 +1,119 @@
-#!/bin/sh
+﻿#!/bin/sh
 set -euo pipefail
-
-echo "[Entrypoint] Iniciando contenedor MariaDB"
-
-# --------------------------------------------------------------------
-# Validación de variables obligatorias
-# --------------------------------------------------------------------
-: "${SERVER_DATA_DIR:?Falta SERVER_DATA_DIR}"
+#
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting MariaDB container entrypoint"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
+#
+# =====================================================================
+# Validation of required variables
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Validating required environment variables..."
+: "${SERVER_DATA_DIR:?ERROR: SERVER_DATA_DIR is required}"
 : "${SERVER_LOG_PATH:=/var/log/mysql}"
 : "${PORT:=3306}"
-: "${DB_NAME:?Falta DB_NAME}"
-: "${DB_USER:?Falta DB_USER}"
-: "${DB_PASS:?Falta DB_PASS}"
-
-# --------------------------------------------------------------------
-# Preparar directorios necesarios
-# --------------------------------------------------------------------
+: "${DB_NAME:?ERROR: DB_NAME is required}"
+: "${DB_USER:?ERROR: DB_USER is required}"
+: "${DB_PASS:?ERROR: DB_PASS is required}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_DATA_DIR=${SERVER_DATA_DIR}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_LOG_PATH=${SERVER_LOG_PATH}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: PORT=${PORT}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: DB_NAME=${DB_NAME}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: DB_USER=${DB_USER}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: All required variables are set"
+#
+# =====================================================================
+# Prepare necessary directories
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Preparing necessary directories..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Creating /run/mysqld"
 mkdir -p /run/mysqld
-chown mysql:mysql /run/mysqld
-chmod 755 /run/mysqld
-
+chown mysql:mysql /run/mysqld && echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Set ownership for /run/mysqld" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to set ownership for /run/mysqld"
+chmod 755 /run/mysqld && echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Set permissions for /run/mysqld" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to set permissions for /run/mysqld"
+#
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Creating data and log directories"
 mkdir -p /entrypointsql "${SERVER_DATA_DIR}" "${SERVER_LOG_PATH}"
-chown -R mysql:mysql "${SERVER_DATA_DIR}" "${SERVER_LOG_PATH}" /entrypointsql
-
-# --------------------------------------------------------------------
-# Inicializar base de datos (solo primera vez)
-# --------------------------------------------------------------------
+chown -R mysql:mysql "${SERVER_DATA_DIR}" "${SERVER_LOG_PATH}" /entrypointsql && echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Set ownership for data directories" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to set ownership"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: All directories prepared"
+#
+# =====================================================================
+# Initialize database (only first time)
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Checking if database needs initialization..."
 if [ ! -d "${SERVER_DATA_DIR}/mysql" ]; then
-    echo "[Entrypoint] Inicializando base de datos..."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Database not found, initializing..."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Running mariadb-install-db..."
     mariadb-install-db \
         --datadir="${SERVER_DATA_DIR}" \
         --basedir=/usr \
         --auth-root-authentication-method=normal \
-        --user=mysql
+        --user=mysql && echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: Database initialized" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Database initialization failed"
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Database already exists, skipping initialization"
 fi
-
-# --------------------------------------------------------------------
-# Arranque temporal (socket local)
-# --------------------------------------------------------------------
-echo "[Entrypoint] Arrancando MariaDB temporalmente..."
+#
+# =====================================================================
+# Temporary startup (local socket)
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting MariaDB temporarily..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Listening on 127.0.0.1:3307"
 mariadbd \
     --user=mysql \
     --datadir="${SERVER_DATA_DIR}" \
     --bind-address=127.0.0.1 \
     --port=3307 &
 TEMP_PID=$!
-
-# --------------------------------------------------------------------
-# Esperar a que esté listo (por socket, sin contraseña)
-# --------------------------------------------------------------------
-echo "[Entrypoint] Esperando a que MariaDB esté listo..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Temporary server PID: $TEMP_PID"
+#
+# =====================================================================
+# Wait for temporary server to be ready (socket, no password)
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Waiting for MariaDB to be ready..."
+RETRY_COUNT=0
+MAX_RETRIES=60
 until mariadb -h 127.0.0.1 -P 3307 -u root -e "SELECT 1" >/dev/null 2>&1; do
-    echo "[Entrypoint] MariaDB no responde todavía..."
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -gt $MAX_RETRIES ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: MariaDB did not become ready after $MAX_RETRIES attempts"
+        kill "$TEMP_PID" 2>/dev/null || true
+        exit 1
+    fi
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: MariaDB not responding yet (attempt $RETRY_COUNT/$MAX_RETRIES)..."
     sleep 1
 done
-echo "[Entrypoint] MariaDB está listo."
-
-# --------------------------------------------------------------------
-# Ejecutar scripts init por socket
-# --------------------------------------------------------------------
-echo "[Entrypoint] Ejecutando scripts init..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: MariaDB is ready"
+#
+# =====================================================================
+# Execute init scripts via socket
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Executing initialization scripts..."
+SCRIPT_COUNT=0
 for f in /entrypointsql/init*.sql; do
     [ -e "$f" ] || continue
-    echo "[Entrypoint] Ejecutando $f con expansión de variables"
-
+    SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Processing script: $f"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Expanding variables in script..."
     sed \
         -e "s|\${DB_NAME}|${DB_NAME}|g" \
         -e "s|\${DB_USER}|${DB_USER}|g" \
         -e "s|\${DB_PASS}|${DB_PASS}|g" \
-        "$f" | mariadb -h 127.0.0.1 -P 3307 -u root
+        "$f" | mariadb -h 127.0.0.1 -P 3307 -u root && echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: Script executed: $f" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to execute script: $f"
 done
-
-# --------------------------------------------------------------------
-# Parar servidor temporal
-# --------------------------------------------------------------------
-echo "[Entrypoint] Deteniendo servidor temporal..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Executed $SCRIPT_COUNT initialization scripts"
+#
+# =====================================================================
+# Stop temporary server
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Stopping temporary server..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Killing PID $TEMP_PID"
 kill "$TEMP_PID"
-wait "$TEMP_PID"
-
-# --------------------------------------------------------------------
-# Arranque final (PID 1, accesible desde fuera)
-# --------------------------------------------------------------------
-echo "[Entrypoint] Arrancando MariaDB en modo servidor..."
+wait "$TEMP_PID" 2>/dev/null || true
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: Temporary server stopped"
+#
+# =====================================================================
+# Final startup (PID 1, accessible from outside)
+# =====================================================================
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting MariaDB server mode (PID 1)..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Listening on 0.0.0.0:${PORT}"
 exec mariadbd \
     --user=mysql \
     --datadir="${SERVER_DATA_DIR}" \

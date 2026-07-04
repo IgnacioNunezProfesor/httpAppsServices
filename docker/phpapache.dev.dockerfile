@@ -13,6 +13,6 @@ COPY ./docker/phpapache/php/conf.d/*.ini /etc/php85/conf.d/
 
 # Script de entrada para expandir variables
 COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN dos2unix /entrypoint.sh && chmod 755 /entrypoint.sh
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
