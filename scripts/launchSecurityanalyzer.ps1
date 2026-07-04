@@ -84,24 +84,11 @@ if (-not (Test-Path $resultsFilePath)) {
 }
 
 Write-Host "[+] Ejecutando contenedor..."
-
-$dockerfileDir = Split-Path -Parent $dockerfilePath
-$hostScriptPath = Join-Path $dockerfileDir "run-analysis.sh"
-$scriptVolume = ""
-
-if (Test-Path $hostScriptPath) {
-    Write-Host "[+] Montando script local de análisis: $hostScriptPath"
-    $scriptVolume = "-v \"$(Resolve-Path $hostScriptPath):/analysis/run-analysis.sh\""
-}
-else {
-    Write-Host "[!] Aviso: run-analysis.sh no encontrado en $dockerfileDir. Se usará la versión de la imagen si existe."
-}
-
-docker run --rm `
+$output = docker run --rm `
     -v "$(Resolve-Path $resultsFilePath):/analysis/results" `
-    $scriptVolume `
     --name $containerName `
     $imageName `
-    bash -c "/analysis/run-analysis.sh -t $targetUrl $executionParams"
+    bash -c "if [ -f /analysis/run-analysis.sh ]; then /analysis/run-analysis.sh -t $targetUrl $executionParams; else echo '[-] Error: /analysis/run-analysis.sh no encontrado dentro del contenedor'; ls -la /analysis; exit 1; fi" 2>&1
 
+$output
 Write-Host "[+] Análisis completado. Resultados en $resultsFilePath"

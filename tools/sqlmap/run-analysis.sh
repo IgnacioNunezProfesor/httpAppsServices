@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "running analysis...";
 
 TARGET=""
 SQLMAP=false

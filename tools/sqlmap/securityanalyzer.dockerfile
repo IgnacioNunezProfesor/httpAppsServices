@@ -61,6 +61,8 @@ WORKDIR /analysis
 
 # Copiar script bash
 COPY ./tools/sqlmap/run-analysis.sh /analysis/run-analysis.sh
+RUN [ -s /analysis/run-analysis.sh ] || (echo "Error: run-analysis.sh no se copió o está vacío" && exit 1)
+
 RUN chmod +x /analysis/run-analysis.sh
 
 CMD ["/bin/bash"]
