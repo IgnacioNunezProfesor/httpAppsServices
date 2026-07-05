@@ -5,10 +5,9 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
 #
 # Debug: Print environment variables
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ===== WORDPRESS ENVIRONMENT VARIABLES DEBUG ====="
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_NAME=${HTTP_NAME:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_PORT=${HTTP_PORT:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_SERVER_ROOT_PATH=${HTTP_SERVER_ROOT_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_CONTAINER_NAME=${DB_CONTAINER_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_NAME=${SERVER_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_PORT=${SERVER_PORT:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_SERVER_ROOT_PATH=${SERVER_ROOT_PATH:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_NAME=${DB_NAME:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_USER=${DB_USER:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_PASS=${DB_PASS:-NOT SET (Set for security)}"

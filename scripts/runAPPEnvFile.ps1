@@ -57,10 +57,37 @@ Write-Host "Container detected: $containerName ($containerId)"
 # Copy entrypoint to container
 Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT_PATH) to container..."
 # Copy to container
-docker cp $envVars.APP_ENTRYPOINT_PATH "${containerId}:/entrypoint-app.sh"
+docker cp $envVars.APP_ENTRYPOINT_PATH "${containerId}:/entrypoint-app.sh" 2>&1
+if ($?) {
+    Write-Host "Entrypoint copied successfully."
+} else {
+    Write-Error "Failed to copy entrypoint to container"
+    exit 1
+}
 # Set execute permissions
 Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT_PATH)..."
-docker exec $containerId chmod +x /entrypoint-app.sh
-docker exec $containerId dos2unix /entrypoint-app.sh
+docker exec $containerId dos2unix /entrypoint-app.sh 2>&1
+if ($?) {
+    Write-Host "Converted to Unix format successfully."
+} else {
+    Write-Error "Failed to convert /entrypoint-app.sh to Unix format"
+    exit 1
+}
+
+docker exec $containerId chmod +x /entrypoint-app.sh 2>&1
+if ($?) {
+    Write-Host "Permissions changed successfully."
+} else {
+    Write-Error "Failed to change permissions for /entrypoint-app.sh"
+    exit 1
+}
+
+
 Write-Host "Executing entrypoint in container..."
-docker exec -it $containerId /entrypoint-app.sh
+docker exec $containerId sh /entrypoint-app.sh 2>&1
+if ($?) {
+    Write-Host "Entrypoint executed successfully."
+} else {
+    Write-Error "Failed to execute entrypoint in container"
+    exit 1
+}
