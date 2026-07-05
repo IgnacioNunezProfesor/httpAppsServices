@@ -53,14 +53,13 @@ elseif ($containerCount -gt 1) {
 }
 
 $containerId = $containerIds[0]
-Write-Host "Container detected: $containerId"
+Write-Host "Container detected: $containerName ($containerId)"
 # Copy entrypoint to container
-Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT) to container..."
+Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT_PATH) to container..."
 # Copy to container
 docker cp $envVars.APP_ENTRYPOINT_PATH "${containerId}:/entrypoint-app.sh"
 # Set execute permissions
-Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT)..."
-
+Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT_PATH)..."
 docker exec $containerId chmod +x /entrypoint-app.sh
 docker exec $containerId dos2unix /entrypoint-app.sh
 Write-Host "Executing entrypoint in container..."
