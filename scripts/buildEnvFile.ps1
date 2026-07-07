@@ -17,12 +17,12 @@ $Dockerfile = $envVars['DOCKERFILE']
 $Tag = $envVars['IMAGE_NAME']
 
 if (-not $Dockerfile) {
-    Write-Error "Falta DOCKERFILE en $EnvFile"
+    Write-Error "Falta HTTP_DOCKERFILE en $EnvFile"
     exit 1
 }
 
 if (-not $Tag) {
-    Write-Error "Falta IMAGE_NAME en $EnvFile"
+    Write-Error "Falta HTTP_IMAGE_NAME en $EnvFile"
     exit 1
 }
 

@@ -34,10 +34,17 @@
             "cwd": "${cwd}"
         },
         {
-            "name": "Debug run.FromEnvFile.ps1",
+            "name": "Debug runFromEnvFile.ps1 phpapache",
             "type": "PowerShell",
             "request": "launch",
-            "script": "\"${workspaceFolder}\\scripts\\run.FromEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.phpapache.env\" -NetworkFile \"${workspaceFolder}\\env\\dev.network.env\"",
+            "script": "& \"${workspaceFolder}\\scripts\\runEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.phpapache.env\" \"${workspaceFolder}\\env\\dev.network.env\"",
+            "cwd": "${cwd}"
+        },
+        {
+            "name": "Debug runFromEnvFile.ps1 mariadb",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "& \"${workspaceFolder}\\scripts\\runEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.mariadb.env\" \"${workspaceFolder}\\env\\dev.network.env\"",
             "cwd": "${cwd}"
         },
         {

@@ -8,7 +8,7 @@ RUN apk add --no-cache \
     dos2unix
 
 # Copiar scripts y configuración
-COPY ./docker/bd/scripts/docker-entrypoint.sh /entrypoint.sh
+COPY ./docker/bd/scripts/entrypoint.sh /entrypoint.sh
 COPY ./docker/bd/sql/*.sql /entrypointsql/
 COPY ./docker/bd/conf/mysql.dev.cnf /etc/my.cnf
 

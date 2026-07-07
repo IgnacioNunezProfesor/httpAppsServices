@@ -8,17 +8,27 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
 # Validation of required variables
 # =====================================================================
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Validating required environment variables..."
+: "${SERVER_NAME:?ERROR:SERVER_NAME is required}"
+: "${SERVER_ID:?ERROR:SERVER_ID is required}"
+: "${SERVER_PORT:?ERROR:SERVER_PORT is required}"
 : "${SERVER_DATA_DIR:?ERROR: SERVER_DATA_DIR is required}"
-: "${SERVER_LOG_PATH:=/var/log/mysql}"
-: "${PORT:=3306}"
+: "${SERVER_LOG_PATH:?ERROR: SERVER_LOG_PATH is required}"
 : "${DB_NAME:?ERROR: DB_NAME is required}"
 : "${DB_USER:?ERROR: DB_USER is required}"
 : "${DB_PASS:?ERROR: DB_PASS is required}"
+: "${IP:?ERROR: IP is required}"
+: "${NETWORK_NAME:?ERROR: NETWORK_NAME is required}"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_NAME=${SERVER_NAME}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_ID=${SERVER_ID}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_PORT=${SERVER_PORT}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_DATA_DIR=${SERVER_DATA_DIR}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_LOG_PATH=${SERVER_LOG_PATH}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: PORT=${PORT}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: DB_NAME=${DB_NAME}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: DB_USER=${DB_USER}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: DB_PASS=${DB_PASS}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: IP=${IP}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: NETWORK_NAME=${NETWORK_NAME}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: All required variables are set"
 #
 # =====================================================================
@@ -113,9 +123,16 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: Temporary server stopped"
 # Final startup (PID 1, accessible from outside)
 # =====================================================================
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting MariaDB server mode (PID 1)..."
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Listening on 0.0.0.0:${PORT}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Listening on 0.0.0.0:${SERVER_PORT}"
 exec mariadbd \
     --user=mysql \
     --datadir="${SERVER_DATA_DIR}" \
     --bind-address=0.0.0.0 \
-    --port="${PORT}"
+    --port="${SERVER_PORT}" \
+    --server-id=${SERVER_ID} \
+    --server-name=${SERVER_NAME} \
+    --log-error="${SERVER_LOG_PATH}/mariadb.log" \
+    --general-log=1 \
+    --general-log-file="${SERVER_LOG_PATH}/mariadb_general.log" \
+    --slow-query-log=1 \
+    --slow-query-log-file="${SERVER_LOG_PATH}/mariadb_slow.log"
