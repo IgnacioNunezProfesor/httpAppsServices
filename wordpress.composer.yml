@@ -7,7 +7,7 @@ services:
       dockerfile: ${DB_DOCKERFILE_PATH}
     restart: always
     environment:
-      DB_PORT: ${DB_PORT}
+      SERVER_PORT: ${DB_PORT}
       SERVER_DATA_DIR: ${DB_SERVER_DATA_DIR}
       LOCAL_DATA_DIR: ${DB_LOCAL_DATA_DIR}
       SERVER_LOG_PATH: ${DB_SERVER_LOG}
@@ -15,7 +15,7 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
-      DB_IP: ${DB_IP}
+      IP: ${DB_IP}
       NETWORK_NAME: ${NETWORK_NAME}
     volumes:
       - ${DB_LOCAL_DATA_DIR}:${DB_SERVER_DATA_DIR}
