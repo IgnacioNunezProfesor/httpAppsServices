@@ -19,17 +19,24 @@
             "cwd": "${cwd}"
         },
         {
-            "name": "Debug buildEnvFile.ps1",
+            "name": "Debug buildEnvFile.ps1 dev.phpapache.env",
             "type": "PowerShell",
             "request": "launch",
-            "script": "\"${workspaceFolder}\\scripts\\buildEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.phpapache.env\"",
+            "script": "& \"${workspaceFolder}\\scripts\\buildEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.phpapache.env\"",
+            "cwd": "${cwd}"
+        },
+        {
+            "name": "Debug buildEnvFile.ps1 dev.mariadb.env",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "& \"${workspaceFolder}\\scripts\\buildEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.mariadb.env\"",
             "cwd": "${cwd}"
         },
         {
             "name": "Debug test.network.ps1",
             "type": "PowerShell",
             "request": "launch",
-            "script": "\"${workspaceFolder}\\scripts\\tests\\test.networks.ps1\"",
+            "script": "& \"${workspaceFolder}\\scripts\\tests\\test.networks.ps1\"",
             "cwd": "${cwd}"
         },
         {
@@ -50,7 +57,7 @@
             "name": "Debug launchSecurityanalizer.ps1",
             "type": "PowerShell",
             "request": "launch",
-            "script": "\"${workspaceFolder}\\scripts\\launchSecurityanalizer.ps1\"",
+            "script": "& \"${workspaceFolder}\\scripts\\launchSecurityanalizer.ps1\"",
             "cwd": "${cwd}"
         },
         {
