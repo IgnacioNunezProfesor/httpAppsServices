@@ -130,9 +130,13 @@ exec mariadbd \
     --bind-address=0.0.0.0 \
     --port="${SERVER_PORT}" \
     --server-id=${SERVER_ID} \
-    --server-name=${SERVER_NAME} \
     --log-error="${SERVER_LOG_PATH}/mariadb.log" \
     --general-log=1 \
     --general-log-file="${SERVER_LOG_PATH}/mariadb_general.log" \
     --slow-query-log=1 \
-    --slow-query-log-file="${SERVER_LOG_PATH}/mariadb_slow.log"
+    --slow-query-log-file="${SERVER_LOG_PATH}/mariadb_slow.log" || {
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: MariaDB failed to start"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Checking mariadb.log..."
+        tail -30 "${SERVER_LOG_PATH}/mariadb.log" || echo "Log file not found"
+        exit 1
+    }
