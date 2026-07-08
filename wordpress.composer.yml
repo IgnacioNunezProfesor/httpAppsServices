@@ -1,13 +1,13 @@
 services:
   db:
-    image: ${DB_IMAGE_NAME}
+    image: ${DB_IMAGE_NAME} 
     container_name: ${DB_CONTAINER_NAME}
     build:
       context: .
       dockerfile: ${DB_DOCKERFILE_PATH}
     restart: always
     environment:
-      PORT: ${DB_PORT}
+      DB_PORT: ${DB_PORT}
       SERVER_DATA_DIR: ${DB_SERVER_DATA_DIR}
       LOCAL_DATA_DIR: ${DB_LOCAL_DATA_DIR}
       SERVER_LOG_PATH: ${DB_SERVER_LOG}
@@ -15,7 +15,7 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
-      IP: ${DB_IP}
+      DB_IP: ${DB_IP}
       NETWORK_NAME: ${NETWORK_NAME}
     volumes:
       - ${DB_LOCAL_DATA_DIR}:${DB_SERVER_DATA_DIR}
@@ -31,23 +31,25 @@ services:
     ports:
       - "${HTTP_PORT}:80"
     environment:
-      DB_HOST: db:${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-      DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_HOST: ${DB_CONTAINER_NAME} 
+      WORDPRESS_DB_PORT: ${DB_PORT}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASS}
       SERVER_NAME: ${HTTP_NAME}
       SERVER_PORT: ${HTTP_PORT}      
-      SERVER_ROOT_PATH: ${HTTP_SERVER_ROOT_PATH}
       LOCAL_ROOT_PATH: ${HTTP_LOCAL_ROOT_PATH}
+      SERVER_ROOT_PATH: ${HTTP_SERVER_ROOT_PATH}
       LOCAL_LOG_PATH: ${HTTP_LOCAL_LOG_PATH}
+      SERVER_LOG_PATH: ${HTTP_SERVER_LOG_PATH}
       LOCAL_INFO_PATH: ${HTTP_LOCAL_INFO_PATH}
       SERVER_INFO_PATH: ${HTTP_SERVER_INFO_PATH}
-      SERVER_LOG_PATH: ${HTTP_SERVER_LOG_PATH}
-      IP: ${HTTP_IP}
+      HTTP_IP: ${HTTP_IP}
       NETWORK_NAME: ${NETWORK_NAME}
       APP_WP_ADMIN_USER: ${APP_WP_ADMIN_USER}
       APP_WP_ADMIN_PASS: ${APP_WP_ADMIN_PASS}
       APP_WP_ADMIN_EMAIL: ${APP_WP_ADMIN_EMAIL}
+      APP_ENTRYPOINT_PATH: ${APP_ENTRYPOINT_PATH}
     volumes:
       - ${HTTP_LOCAL_ROOT_PATH}:${HTTP_SERVER_ROOT_PATH}
       - ${HTTP_LOCAL_INFO_PATH}:${HTTP_SERVER_INFO_PATH}

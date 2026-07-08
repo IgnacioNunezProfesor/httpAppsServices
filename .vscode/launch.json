@@ -5,31 +5,59 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug runAppEnvFile.ps1",
+            "type": "dockerfile",
+            "request": "launch",
+            "name": "Debug Build phpapachedev.dockerfile",
+            "dockerfile": "./docker/phpapache.dev.dockerfile",
+            "contextPath": "${workspaceFolder}"
+        },
+        {
+            "name": "Debug runAppEnvFile.ps1 wordpress",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/scripts/runAppEnvFile.ps1 .\\env\\dev.wordpress.env",
+            "script": "& \"${workspaceFolder}\\scripts\\runAppEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.wordpress.env\"",
             "cwd": "${cwd}"
         },
         {
-            "name": "Debug build.EnvFile.ps1",
+            "name": "Debug buildEnvFile.ps1 dev.phpapache.env",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/scripts/build.EnvFile.ps1 -EnvFile .\\env\\dev.phpapache.env",
+            "script": "& \"${workspaceFolder}\\scripts\\buildEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.phpapache.env\"",
+            "cwd": "${cwd}"
+        },
+        {
+            "name": "Debug buildEnvFile.ps1 dev.mariadb.env",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "& \"${workspaceFolder}\\scripts\\buildEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.mariadb.env\"",
             "cwd": "${cwd}"
         },
         {
             "name": "Debug test.network.ps1",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}\\scripts\\tests\\test.networks.ps1",
+            "script": "& \"${workspaceFolder}\\scripts\\tests\\test.networks.ps1\"",
             "cwd": "${cwd}"
         },
         {
-            "name": "Debug run.FromEnvFile.ps1",
+            "name": "Debug runFromEnvFile.ps1 phpapache",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/scripts/run.FromEnvFile.ps1 -EnvFile .\\env\\dev.phpapache.env -NetworkFile .\\env\\dev.network.env",
+            "script": "& \"${workspaceFolder}\\scripts\\runEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.phpapache.env\" \"${workspaceFolder}\\env\\dev.network.env\"",
+            "cwd": "${cwd}"
+        },
+        {
+            "name": "Debug runFromEnvFile.ps1 mariadb",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "& \"${workspaceFolder}\\scripts\\runEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.mariadb.env\" \"${workspaceFolder}\\env\\dev.network.env\"",
+            "cwd": "${cwd}"
+        },
+        {
+            "name": "Debug launchSecurityanalizer.ps1",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "& \"${workspaceFolder}\\scripts\\launchSecurityanalizer.ps1\"",
             "cwd": "${cwd}"
         },
         {
@@ -67,20 +95,6 @@
             "configurations": [
                 "Launch phpinfo phpapache edge",
                 "Launch phpapache edge"
-            ]
-        },
-        {
-            "name": "Launch Edge Headless and attach DevTools",
-            "configurations": [
-                "Launch Microsoft Edge in headless mode",
-                "Open Edge DevTools"
-            ]
-        },
-        {
-            "name": "Launch Edge and attach DevTools",
-            "configurations": [
-                "Launch Microsoft Edge",
-                "Open Edge DevTools"
             ]
         }
     ]
