@@ -39,16 +39,17 @@ $containerCount = $containerIds.Count
 
 Write-Host "Found $containerCount container(s)"
 
-if ($containerCount -eq 0) {
-    Write-Error "No container found for service $containerName"
-    exit 1
-}
-elseif ($containerCount -gt 1) {
+if ($containerCount -gt 1) {
     Write-Error "Multiple containers found for service $containerName`:"
     foreach ($id in $containerIds) {
         $name = docker ps --filter "id=$id" --format "{{.Names}}"
         Write-Error "  - $name (ID: $id)"
     }
+    exit 1
+}
+
+if ($containerCount -eq 0) {
+    Write-Error "No container found for service $containerName"
     exit 1
 }
 
@@ -58,36 +59,31 @@ Write-Host "Container detected: $containerName ($containerId)"
 Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT_PATH) to container..."
 # Copy to container
 docker cp $envVars.APP_ENTRYPOINT_PATH "${containerId}:/entrypoint-app.sh" 2>&1
-if ($?) {
-    Write-Host "Entrypoint copied successfully."
-} else {
+if ( -not $?) {
     Write-Error "Failed to copy entrypoint to container"
     exit 1
 }
+Write-Host "Entrypoint copied successfully."
 # Set execute permissions
 Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT_PATH)..."
 docker exec $containerId dos2unix /entrypoint-app.sh 2>&1
-if ($?) {
-    Write-Host "Converted to Unix format successfully."
-} else {
+if ( -not $?) {
     Write-Error "Failed to convert /entrypoint-app.sh to Unix format"
     exit 1
-}
+} 
+Write-Host "Converted to Unix format successfully."
 
 docker exec $containerId chmod +x /entrypoint-app.sh 2>&1
-if ($?) {
-    Write-Host "Permissions changed successfully."
-} else {
+if (-not $?) {
     Write-Error "Failed to change permissions for /entrypoint-app.sh"
     exit 1
 }
-
+Write-Host "Permissions changed successfully."
 
 Write-Host "Executing entrypoint in container..."
 docker exec $containerId sh /entrypoint-app.sh 2>&1
-if ($?) {
-    Write-Host "Entrypoint executed successfully."
-} else {
+if ( -not $?) {
     Write-Error "Failed to execute entrypoint in container"
     exit 1
-}
+} 
+Write-Host "Entrypoint executed successfully."
