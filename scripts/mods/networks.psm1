@@ -52,8 +52,8 @@ function createNetwork {
 
         if ($existingSubnet -eq $Subnet) {
             Write-Host "La red '$NetworkName' ya existe con la misma subred ($Subnet). No se realizará ninguna acción." -ForegroundColor Green
-            return}
-        else {
+            return
+        }else {
             Write-Host "La red '$NetworkName' existe pero con subred diferente ($existingSubnet). Será eliminada." -ForegroundColor Yellow
             docker network rm $existingNetworkId
 
