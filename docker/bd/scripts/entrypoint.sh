@@ -17,7 +17,6 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Validating required environment varia
 : "${DB_PASS:?ERROR: DB_PASS is required}"
 : "${IP:?ERROR: IP is required}"
 : "${NETWORK_NAME:?ERROR: NETWORK_NAME is required}"
-
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_ID=${SERVER_ID}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_PORT=${SERVER_PORT}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_DATA_DIR=${SERVER_DATA_DIR}"
@@ -138,3 +137,4 @@ exec mariadbd \
         tail -30 "${SERVER_LOG_PATH}/mariadb.log" || echo "Log file not found"
         exit 1
     }
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: MariaDB server started successfully"

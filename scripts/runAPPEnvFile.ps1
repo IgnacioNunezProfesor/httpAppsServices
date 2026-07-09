@@ -26,7 +26,7 @@ if (-not $envVars) {
 # Levantar contenedor
 docker compose -f $envVars.APP_COMPOSER_PATH --env-file $EnvFile up -d
 
-# Esperar a que el contenedor esté listo
+
 Start-Sleep -Seconds 3
 
 # Get container name (by service)

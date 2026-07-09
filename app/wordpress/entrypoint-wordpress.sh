@@ -1,5 +1,6 @@
 ﻿#!/bin/bash
 set -e
+
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting WordPress entrypoint script..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
 #
@@ -46,34 +47,53 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Attempting to connect to ${WORDPRESS
 RETRY_COUNT=0
 MAX_RETRIES=30
 #
-until mysqladmin ping -h"$WORDPRESS_DB_HOST" --silent 2>/dev/null; do
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    if [ $RETRY_COUNT -gt $MAX_RETRIES ]; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: MySQL did not become available after $MAX_RETRIES attempts"
-        exit 1
-    fi
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: MySQL not ready yet (attempt $RETRY_COUNT/$MAX_RETRIES), waiting 2 seconds..."
-    sleep 2
-done
+# Comentado según tu flujo, pero recuerda descomentarlo si necesitas que espere a MariaDB de forma estricta
+#until mariadb-admin ping -h"$WORDPRESS_DB_HOST" -u"$WORDPRESS_DB_USER" -p"$WORDPRESS_DB_PASSWORD" --silent 2>/dev/null; do
+#    RETRY_COUNT=$((RETRY_COUNT + 1))
+#    if [ $RETRY_COUNT -gt $MAX_RETRIES ]; then
+#        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: MySQL did not become available after $MAX_RETRIES attempts"
+#        exit 1
+#    fi
+#    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: MySQL not ready yet (attempt $RETRY_COUNT/$MAX_RETRIES), waiting 2 seconds..."
+#    sleep 2
+#done
 #
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: MySQL is now available"
 #
 cd /var/www/html
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Changed directory to: $(pwd)"
-#
+
+# --- CONFIGURACIÓN DE WP-CLI ---
+# Detectar dinámicamente cómo invocar WP-CLI para evitar el error "command not found"
+if command -v wp &> /dev/null; then
+    WP_CMD="wp"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: WP-CLI detected globally as 'wp'"
+elif [ -f "wp-cli.phar" ]; then
+    WP_CMD="php wp-cli.phar"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: WP-CLI detected locally as 'php wp-cli.phar'"
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: WP-CLI not found. Downloading wp-cli.phar..."
+    curl -s -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    chmod +x wp-cli.phar
+    WP_CMD="php wp-cli.phar"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: WP-CLI downloaded and ready"
+fi
+# -------------------------------
+
 # Check if wp-config.php exists
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Checking if wp-config.php exists..."
 if [ ! -f wp-config.php ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: wp-config.php not found. Generating..."
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Creating config with:"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Database: $DB_NAME"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - User: $DB_USER"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Host: $DB_CONTAINER_NAME"
-    wp config create \
-        --dbname="$DB_NAME" \
-        --dbuser="$DB_USER" \
-        --dbpass="$DB_PASS" \
-        --dbhost="$DB_CONTAINER_NAME" \
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Database: $WORDPRESS_DB_NAME"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - User: $WORDPRESS_DB_USER"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Host: $WORDPRESS_DB_HOST"
+    
+    $WP_CMD config create \
+        --dbname="$WORDPRESS_DB_NAME" \
+        --dbuser="$WORDPRESS_DB_USER" \
+        --dbpass="$WORDPRESS_DB_PASSWORD" \
+        --dbhost="$WORDPRESS_DB_HOST" \
         --skip-check \
         --allow-root && echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: wp-config.php created" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to create wp-config.php"
 else
@@ -82,15 +102,16 @@ fi
 #
 # Unattended installation
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Checking if WordPress is already installed..."
-if ! wp core is-installed --allow-root 2>/dev/null; then
+if ! $WP_CMD core is-installed --allow-root 2>/dev/null; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: WordPress not installed. Starting unattended installation..."
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Installing WordPress with:"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - URL: $HTTP_NAME"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - URL: $SERVER_NAME"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Title: $APP_NAME"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Admin User: $APP_WP_ADMIN_USER"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Admin Email: $APP_WP_ADMIN_EMAIL"
-    wp core install \
-        --url="$HTTP_NAME" \
+    
+    $WP_CMD core install \
+        --url="$SERVER_NAME" \
         --title="$APP_NAME" \
         --admin_user="$APP_WP_ADMIN_USER" \
         --admin_password="$APP_WP_ADMIN_PASS" \
