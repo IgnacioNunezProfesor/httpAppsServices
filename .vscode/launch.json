@@ -91,7 +91,7 @@
             "name": "Launch wordpress edge",
             "request": "launch",
             "type": "msedge",
-            "url": "http://wordpress.localhost",
+            "url": "http://wordpress.localhost:81/",
             "webRoot": "${workspaceFolder}/wordpress"
         }
     ],

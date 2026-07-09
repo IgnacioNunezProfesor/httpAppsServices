@@ -60,7 +60,7 @@ MAX_RETRIES=30
 #
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: MySQL is now available"
 #
-cd /var/www/html
+cd "$SERVER_ROOT_PATH"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Changed directory to: $(pwd)"
 
 # --- CONFIGURACIÓN DE WP-CLI ---
