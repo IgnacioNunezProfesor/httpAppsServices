@@ -8,7 +8,6 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
 # Validation of required variables
 # =====================================================================
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Validating required environment variables..."
-: "${SERVER_NAME:?ERROR:SERVER_NAME is required}"
 : "${SERVER_ID:?ERROR:SERVER_ID is required}"
 : "${SERVER_PORT:?ERROR:SERVER_PORT is required}"
 : "${SERVER_DATA_DIR:?ERROR: SERVER_DATA_DIR is required}"
@@ -19,7 +18,6 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Validating required environment varia
 : "${IP:?ERROR: IP is required}"
 : "${NETWORK_NAME:?ERROR: NETWORK_NAME is required}"
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_NAME=${SERVER_NAME}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_ID=${SERVER_ID}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_PORT=${SERVER_PORT}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: SERVER_DATA_DIR=${SERVER_DATA_DIR}"
