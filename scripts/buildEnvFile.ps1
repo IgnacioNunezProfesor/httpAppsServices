@@ -14,7 +14,14 @@ $envVars = Get-EnvVarsFromFile -envFile $EnvFile
 
 # Variables obligatorias
 $Dockerfile = $envVars['DOCKERFILE']
+if (-not $Dockerfile) {
+    $Dockerfile = $envVars['HTTP_DOCKERFILE_PATH']
+}
+
 $Tag = $envVars['IMAGE_NAME']
+if (-not $Tag) {
+    $Tag = $envVars['HTTP_IMAGE_NAME']
+}
 
 if (-not $Dockerfile) {
     Write-Error "Falta HTTP_DOCKERFILE en $EnvFile"
