@@ -23,11 +23,23 @@ if (-not $envVars) {
     -Url $envVars.APP_GITHUB_URL `
     -Path $envVars.APP_LOCAL_PATH
 
+# Check if image exists locally, if not build it
+Write-Host "Checking if image $($envVars.HTTP_IMAGE_NAME) exists locally..."
+$imageExists = @(docker images -q $envVars.HTTP_IMAGE_NAME 2>$null)
+if ($imageExists.Count -eq 0) {
+    Write-Host "Image $($envVars.HTTP_IMAGE_NAME) not found locally. Building image..."
+    .\scripts\buildEnvFile.ps1 -EnvFile $EnvFile
+    if (-not $?) {
+        Write-Error "Failed to build image $($envVars.HTTP_IMAGE_NAME)"
+        exit 1
+    }
+    Write-Host "Image built successfully."
+} else {
+    Write-Host "Image $($envVars.HTTP_IMAGE_NAME) already exists locally."
+}
+
 # Levantar contenedor
 docker compose -f $envVars.APP_COMPOSER_PATH --env-file $EnvFile up -d
-
-
-Start-Sleep -Seconds 3
 
 # Get container name (by service)
 $containerName = $envVars.HTTP_CONTAINER_NAME
@@ -55,33 +67,69 @@ if ($containerCount -eq 0) {
 
 $containerId = $containerIds[0]
 Write-Host "Container detected: $containerName ($containerId)"
+# Wait for container health (if available) or for it to be running
+Write-Host "Waiting for container health status..."
+$maxWaitSeconds = 60
+$elapsed = 0
+$sleepInterval = 2
+$healthSupported = $true
+while ($elapsed -lt $maxWaitSeconds) {
+    try {
+        $health = docker inspect --format '{{.State.Health.Status}}' $containerId 2>$null
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrEmpty($health)) {
+            # Health not configured; fall back to checking .State.Status
+            $healthSupported = $false
+            $state = docker inspect --format '{{.State.Status}}' $containerId 2>$null
+            if ($state -eq 'running') { break }
+        } else {
+            if ($health -eq 'healthy') { break }
+            if ($health -eq 'unhealthy') {
+                Write-Error "Container reported unhealthy"
+                exit 1
+            }
+        }
+    } catch {
+        # ignore and retry
+    }
+    Start-Sleep -Seconds $sleepInterval
+    $elapsed += $sleepInterval
+}
+if ($elapsed -ge $maxWaitSeconds) {
+    if ($healthSupported) {
+        Write-Error "Timed out waiting for container to become healthy"
+    } else {
+        Write-Error "Timed out waiting for container to be running"
+    }
+    exit 1
+}
+
 # Copy entrypoint to container
-Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT_PATH) to container..."
+Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT_LOCAL_PATH) to container..."
 # Copy to container
-docker cp $envVars.APP_ENTRYPOINT_PATH "${containerId}:/entrypoint-app.sh" 2>&1
+docker cp $envVars.APP_ENTRYPOINT_LOCAL_PATH "${containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)" 2>&1
 if ( -not $?) {
     Write-Error "Failed to copy entrypoint to container"
     exit 1
 }
 Write-Host "Entrypoint copied successfully."
 # Set execute permissions
-Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT_PATH)..."
-docker exec $containerId dos2unix /entrypoint-app.sh 2>&1
+Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT_SERVER_PATH)..."
+docker exec $containerId dos2unix $envVars.APP_ENTRYPOINT_SERVER_PATH 2>&1
 if ( -not $?) {
-    Write-Error "Failed to convert /entrypoint-app.sh to Unix format"
+    Write-Error "Failed to convert $envVars.APP_ENTRYPOINT_SERVER_PATH to Unix format"
     exit 1
 } 
 Write-Host "Converted to Unix format successfully."
 
-docker exec $containerId chmod +x /entrypoint-app.sh 2>&1
+docker exec $containerId chmod +x $envVars.APP_ENTRYPOINT_SERVER_PATH 2>&1
 if (-not $?) {
-    Write-Error "Failed to change permissions for /entrypoint-app.sh"
+    Write-Error "Failed to change permissions for $envVars.APP_ENTRYPOINT_SERVER_PATH"
     exit 1
 }
 Write-Host "Permissions changed successfully."
 
 Write-Host "Executing entrypoint in container..."
-docker exec $containerId sh /entrypoint-app.sh 2>&1
+docker exec $containerId sh $envVars.APP_ENTRYPOINT_SERVER_PATH 2>&1
 if ( -not $?) {
     Write-Error "Failed to execute entrypoint in container"
     exit 1

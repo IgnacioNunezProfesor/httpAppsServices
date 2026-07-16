@@ -12,12 +12,6 @@
             "contextPath": "${workspaceFolder}"
         },
         {
-            "type": "bashdb",
-            "request": "launch",
-            "name": "Depurar Entrypoint",
-            "program": "${workspaceFolder}\\app\\wordpress\\entrypoint-wordpress.sh"
-        },
-        {
             "name": "Debug runAppEnvFile.ps1 wordpress",
             "type": "PowerShell",
             "request": "launch",
