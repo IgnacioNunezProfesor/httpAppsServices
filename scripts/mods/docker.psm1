@@ -87,3 +87,45 @@ function Get-ContainerLogs {
     $logs = docker logs $ContainerId 2>&1
     return $logs
 }
+
+function Clear-Containers {
+    param(
+        [string]$reason = "Script termination"
+    )
+
+    if ($script:containerId) {
+        Write-Host "Cleaning up container: $script:containerName ($script:containerId)"
+        Write-Host "Reason: $reason"
+        
+        # Try to stop the container
+        Write-Host "Stopping container..."
+        $stopOutput = docker stop $script:containerId 2>&1
+        if (-not $?) {
+            Write-Warning "Failed to stop container: $stopOutput"
+        } else {
+            Write-Host "Container stopped."
+        }
+
+        # Wait a moment, then remove it
+        Start-Sleep -Seconds 2
+
+        Write-Host "Removing container..."
+        $rmOutput = docker rm $script:containerId 2>&1
+        if (-not $?) {
+            Write-Warning "Failed to remove container: $rmOutput"
+        } else {
+            Write-Host "Container removed."
+        }
+    }
+
+    # Clean up the network if needed
+    if ($script:networkName) {
+        Write-Host "Cleaning up network: $script:networkName"
+        $netRmOutput = docker network rm $script:networkName 2>&1
+        if (-not $?) {
+            Write-Warning "Failed to remove network (may still be in use): $netRmOutput"
+        } else {
+            Write-Host "Network removed."
+        }
+    }
+}

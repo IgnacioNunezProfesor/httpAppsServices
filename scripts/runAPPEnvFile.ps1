@@ -10,52 +10,10 @@ $script:containerId = $null
 $script:containerName = $null
 $script:cleanupOnExit = $false
 
-function Clear-Containers {
-    param(
-        [string]$reason = "Script termination"
-    )
-
-    if ($script:containerId) {
-        Write-Host "Cleaning up container: $script:containerName ($script:containerId)"
-        Write-Host "Reason: $reason"
-        
-        # Try to stop the container
-        Write-Host "Stopping container..."
-        $stopOutput = docker stop $script:containerId 2>&1
-        if (-not $?) {
-            Write-Warning "Failed to stop container: $stopOutput"
-        } else {
-            Write-Host "Container stopped."
-        }
-
-        # Wait a moment, then remove it
-        Start-Sleep -Seconds 2
-
-        Write-Host "Removing container..."
-        $rmOutput = docker rm $script:containerId 2>&1
-        if (-not $?) {
-            Write-Warning "Failed to remove container: $rmOutput"
-        } else {
-            Write-Host "Container removed."
-        }
-    }
-
-    # Clean up the network if needed
-    if ($script:networkName) {
-        Write-Host "Cleaning up network: $script:networkName"
-        $netRmOutput = docker network rm $script:networkName 2>&1
-        if (-not $?) {
-            Write-Warning "Failed to remove network (may still be in use): $netRmOutput"
-        } else {
-            Write-Host "Network removed."
-        }
-    }
-}
-
 # Set up trap to catch any unhandled exceptions or script termination
 trap {
     Write-Error "Unexpected error occurred: $_"
-    Cleanup-Containers -reason "Trap caught exception: $_"
+    Clear-Containers -reason "Trap caught exception: $_"
     exit 1
 }
 
@@ -127,7 +85,7 @@ try {
 
     if (-not $?) {
         Write-Error "Failed to register application"
-        Cleanup-Containers -reason "Application registration failed"
+        Clear-Containers -reason "Application registration failed"
         exit 1
     }
 
@@ -198,7 +156,7 @@ try {
                     Write-Error "Container reported unhealthy."
                     $logs = Get-ContainerLogs -ContainerId $script:containerId
                     Write-Error "Container logs:`n$logs"
-                    Cleanup-Containers -reason "Container unhealthy"
+                    Clear-Containers -reason "Container unhealthy"
                     exit 1
                 }
             }
@@ -213,7 +171,7 @@ try {
         Write-Error "Timed out waiting for container to be ready (${maxWaitSeconds}s)"
         $logs = Get-ContainerLogs -ContainerId $script:containerId
         Write-Error "Container logs:`n$logs"
-        Cleanup-Containers -reason "Container health check timeout"
+        Clear-Containers -reason "Container health check timeout"
         exit 1
     }
 
@@ -251,13 +209,13 @@ try {
 
 } catch {
     Write-Error "Critical error during deployment: $_"
-    Cleanup-Containers -reason "Critical exception: $_"
+    Clear-Containers -reason "Critical exception: $_"
     exit 1
 
 } finally {
     # Final cleanup if script exits unexpectedly
     if ($script:cleanupOnExit) {
         Write-Host "Performing cleanup due to script exit..."
-        Cleanup-Containers -reason "Script exit"
+        Clear-Containers -reason "Script exit"
     }
 }

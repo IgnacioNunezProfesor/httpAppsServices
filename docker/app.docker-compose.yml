@@ -3,7 +3,7 @@ services:
     image: ${DB_IMAGE_NAME} 
     container_name: ${DB_CONTAINER_NAME}
     build:
-      context: .
+      context: ..
       dockerfile: ${DB_DOCKERFILE_PATH}
     restart: always
     networks:
@@ -34,7 +34,7 @@ services:
     image: ${HTTP_IMAGE_NAME}
     container_name: ${HTTP_CONTAINER_NAME}
     build:
-      context: .
+      context: ..
       dockerfile: ${HTTP_DOCKERFILE_PATH}
     restart: always
     networks:
@@ -64,6 +64,7 @@ services:
       APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL}
       APP_ENTRYPOINT_LOCAL_PATH: ${APP_ENTRYPOINT_LOCAL_PATH}
       APP_ENTRYPOINT_SERVER_PATH: ${APP_ENTRYPOINT_SERVER_PATH}
+      BUILD_HTTP_APK_REQ: ${BUILD_HTTP_APK_REQ}
     volumes:
       - ${HTTP_LOCAL_ROOT_PATH}:${HTTP_SERVER_ROOT_PATH}
       - ${HTTP_LOCAL_INFO_PATH}:${HTTP_SERVER_INFO_PATH}
