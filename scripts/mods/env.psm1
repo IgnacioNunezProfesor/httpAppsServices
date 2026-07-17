@@ -54,7 +54,7 @@ function EnvVarsToBuildArgs {
     return $arg
 }
 
-function Validate-EnvVars {
+function Test-EnvVars {
     param(
         [Parameter(Mandatory)]
         [hashtable]$envVars,

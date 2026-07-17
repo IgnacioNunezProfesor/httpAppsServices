@@ -10,7 +10,7 @@ $script:containerId = $null
 $script:containerName = $null
 $script:cleanupOnExit = $false
 
-function Cleanup-Containers {
+function Clear-Containers {
     param(
         [string]$reason = "Script termination"
     )
@@ -104,7 +104,7 @@ $requiredVars = @(
     'NETWORK_NAME'
 )
 
-if (-not (Validate-EnvVars -envVars $envVars -requiredVars $requiredVars)) {
+if (-not (Test-EnvVars -envVars $envVars -requiredVars $requiredVars)) {
     Write-Error "Validation failed. Please check your environment file and try again."
     exit 1
 }
@@ -222,9 +222,14 @@ try {
     # ============================================================================
     # Copy and Execute Entrypoint
     # ============================================================================
+
+    
+
     Write-Host "Copying entrypoint to container..."
     Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)`"" `
         -ErrorMessage "Failed to copy entrypoint to container"
+
+
 
     Write-Host "Converting line endings to Unix format..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `

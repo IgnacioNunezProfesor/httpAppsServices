@@ -8,13 +8,13 @@ RUN apk update && apk upgrade && \
     php-ctype php-dom php-iconv php-simplexml php-openssl php-sodium php-tokenizer php-xdebug \
     php-xmlreader php-fileinfo php-xmlwriter phpunit php-pear curl composer ${BUILD_APK_REQ}
 
-COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
-COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
-COPY ./docker/phpapache/php/php.ini /etc/php85/
-COPY ./docker/phpapache/php/conf.d/*.ini /etc/php85/conf.d/
+COPY ./phpapache/apache/httpd.conf /etc/apache2/httpd.conf
+COPY ./phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
+COPY ./phpapache/php/php.ini /etc/php85/
+COPY ./phpapache/php/conf.d/*.ini /etc/php85/conf.d/
 
 # Script de entrada para expandir variables
-COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh
+COPY ./phpapache/entrypoint.sh /entrypoint.sh
 RUN dos2unix /entrypoint.sh && chmod 755 /entrypoint.sh
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]

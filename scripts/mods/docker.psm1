@@ -59,7 +59,7 @@ function Invoke-DockerExecCommand {
         [string]$ErrorMessage
     )
 
-    $output = docker exec $ContainerId $Command 2>&1
+    $output = Invoke-Expression "docker exec $ContainerId $Command 2>&1"
     
     if (-not $?) {
         throw "${ErrorMessage}:`n$output"
