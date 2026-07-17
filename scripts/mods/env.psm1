@@ -39,8 +39,6 @@ function Get-EnvVarsByPrefix {
     return $filtered
 }
 
-
-
 function EnvVarsToBuildArgs {
     param(
         [Parameter(Mandatory)]
@@ -48,11 +46,42 @@ function EnvVarsToBuildArgs {
     )
     if ($envVars.Count -eq 0) { return @() }
 
-
     $arg = @()
     foreach ($key in $envVars.Keys) {
         $arg += @("--build-arg", "$key=$($envVars[$key])")
     }
 
     return $arg
+}
+
+function Validate-EnvVars {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$envVars,
+        [Parameter(Mandatory)]
+        [string[]]$requiredVars
+    )
+
+    $missing = @()
+    $empty = @()
+
+    foreach ($var in $requiredVars) {
+        if (-not $envVars.ContainsKey($var)) {
+            $missing += $var
+        } elseif ([string]::IsNullOrWhiteSpace($envVars[$var])) {
+            $empty += $var
+        }
+    }
+
+    if ($missing.Count -gt 0 -or $empty.Count -gt 0) {
+        if ($missing.Count -gt 0) {
+            Write-Error "Missing environment variables: $($missing -join ', ')"
+        }
+        if ($empty.Count -gt 0) {
+            Write-Error "Empty environment variables: $($empty -join ', ')"
+        }
+        return $false
+    }
+
+    return $true
 }

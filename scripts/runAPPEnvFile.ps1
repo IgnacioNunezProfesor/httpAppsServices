@@ -3,135 +3,256 @@ Param(
     [string]$envFile
 )
 
-# Recargar módulos
+# ============================================================================
+# Cleanup Handler
+# ============================================================================
+$script:containerId = $null
+$script:containerName = $null
+$script:cleanupOnExit = $false
+
+function Cleanup-Containers {
+    param(
+        [string]$reason = "Script termination"
+    )
+
+    if ($script:containerId) {
+        Write-Host "Cleaning up container: $script:containerName ($script:containerId)"
+        Write-Host "Reason: $reason"
+        
+        # Try to stop the container
+        Write-Host "Stopping container..."
+        $stopOutput = docker stop $script:containerId 2>&1
+        if (-not $?) {
+            Write-Warning "Failed to stop container: $stopOutput"
+        } else {
+            Write-Host "Container stopped."
+        }
+
+        # Wait a moment, then remove it
+        Start-Sleep -Seconds 2
+
+        Write-Host "Removing container..."
+        $rmOutput = docker rm $script:containerId 2>&1
+        if (-not $?) {
+            Write-Warning "Failed to remove container: $rmOutput"
+        } else {
+            Write-Host "Container removed."
+        }
+    }
+
+    # Clean up the network if needed
+    if ($script:networkName) {
+        Write-Host "Cleaning up network: $script:networkName"
+        $netRmOutput = docker network rm $script:networkName 2>&1
+        if (-not $?) {
+            Write-Warning "Failed to remove network (may still be in use): $netRmOutput"
+        } else {
+            Write-Host "Network removed."
+        }
+    }
+}
+
+# Set up trap to catch any unhandled exceptions or script termination
+trap {
+    Write-Error "Unexpected error occurred: $_"
+    Cleanup-Containers -reason "Trap caught exception: $_"
+    exit 1
+}
+
+# ============================================================================
+# Module Loading
+# ============================================================================
+Write-Host "Loading modules..."
+
 if (Get-Module 'env') { Remove-Module 'env' -Force }
 Import-Module .\scripts\mods\env.psm1 -Force
 
 if (Get-Module 'networks') { Remove-Module 'networks' -Force }
 Import-Module .\scripts\mods\networks.psm1 -Force
 
-# Cargar variables de entorno
+if (Get-Module 'docker') { Remove-Module 'docker' -Force }
+Import-Module .\scripts\mods\docker.psm1 -Force
+
+# ============================================================================
+# Load and Validate Environment
+# ============================================================================
+Write-Host "Loading environment variables from: $envFile"
 $envVars = Get-EnvVarsFromFile -envFile $EnvFile
 if (-not $envVars) {
     Write-Error "No se pudieron cargar las variables de entorno desde $EnvFile"
     exit 1
 }
 
-# Registrar aplicación
-.\scripts\AdminApp.ps1 -add `
-    -Name $envVars.APP_NAME `
-    -Url $envVars.APP_GITHUB_URL `
-    -Path $envVars.APP_LOCAL_PATH
+$requiredVars = @(
+    'APP_NAME',
+    'APP_GITHUB_URL',
+    'APP_LOCAL_PATH',
+    'APP_COMPOSE_PATH',
+    'APP_ENTRYPOINT_LOCAL_PATH',
+    'APP_ENTRYPOINT_SERVER_PATH',
+    'HTTP_CONTAINER_NAME',
+    'DB_IMAGE_NAME',
+    'DB_CONTAINER_NAME',
+    'DB_DOCKERFILE_PATH',
+    'HTTP_IMAGE_NAME',
+    'HTTP_DOCKERFILE_PATH',
+    'HTTP_PORT',
+    'DB_SERVER_PORT',
+    'DB_NAME',
+    'DB_USER',
+    'DB_PASS',
+    'NETWORK_NAME'
+)
 
-# Check if image exists locally, if not build it
-Write-Host "Checking if image $($envVars.HTTP_IMAGE_NAME) exists locally..."
-$imageExists = @(docker images -q $envVars.HTTP_IMAGE_NAME 2>$null)
-if ($imageExists.Count -eq 0) {
-    Write-Host "Image $($envVars.HTTP_IMAGE_NAME) not found locally. Building image..."
-    .\scripts\buildEnvFile.ps1 -EnvFile $EnvFile
+if (-not (Validate-EnvVars -envVars $envVars -requiredVars $requiredVars)) {
+    Write-Error "Validation failed. Please check your environment file and try again."
+    exit 1
+}
+
+Write-Host "Environment variables validated successfully."
+
+# Store container/network info for cleanup
+$script:containerName = $envVars.HTTP_CONTAINER_NAME
+$script:networkName = $envVars.NETWORK_NAME
+
+try {
+    # ============================================================================
+    # Register Application
+    # ============================================================================
+    Write-Host "Registering application: $($envVars.APP_NAME)..."
+    & .\scripts\AdminApp.ps1 -add `
+        -Name $envVars.APP_NAME `
+        -Url $envVars.APP_GITHUB_URL `
+        -Path $envVars.APP_LOCAL_PATH
+
     if (-not $?) {
-        Write-Error "Failed to build image $($envVars.HTTP_IMAGE_NAME)"
+        Write-Error "Failed to register application"
+        Cleanup-Containers -reason "Application registration failed"
         exit 1
     }
-    Write-Host "Image built successfully."
-} else {
-    Write-Host "Image $($envVars.HTTP_IMAGE_NAME) already exists locally."
-}
 
-# Levantar contenedor
-docker compose -f $envVars.APP_COMPOSER_PATH --env-file $EnvFile up -d
+    # ============================================================================
+    # Start Docker Containers
+    # ============================================================================
+    Write-Host "Starting Docker containers..."
+    Invoke-DockerCommand -Command "compose -f `"$($envVars.APP_COMPOSE_PATH)`" --env-file `"$EnvFile`" up -d --build" `
+        -ErrorMessage "Failed to start Docker containers"
 
-# Get container name (by service)
-$containerName = $envVars.HTTP_CONTAINER_NAME
-Write-Host "Searching for container: $containerName"
+    Write-Host "Containers started successfully."
+    $script:cleanupOnExit = $true  # Mark that we have containers to clean up
 
-# Use exact match with regex anchor (^ and $)
-$containerIds = @(docker ps --filter "name=^$containerName`$" --format "{{.ID}}")
-$containerCount = $containerIds.Count
+    # ============================================================================
+    # Find Container
+    # ============================================================================
+    $containerName = $envVars.HTTP_CONTAINER_NAME
+    Write-Host "Searching for container: $containerName"
 
-Write-Host "Found $containerCount container(s)"
+    $psOutput = Invoke-DockerCommand -Command "ps --filter `"name=^$containerName`$`" --format `"{{.ID}}`"" `
+        -ErrorMessage "Failed to query Docker containers"
 
-if ($containerCount -gt 1) {
-    Write-Error "Multiple containers found for service $containerName`:"
-    foreach ($id in $containerIds) {
-        $name = docker ps --filter "id=$id" --format "{{.Names}}"
-        Write-Error "  - $name (ID: $id)"
+    $containerIds = @($psOutput | Where-Object { $_ })
+    $containerCount = $containerIds.Count
+
+    Write-Host "Found $containerCount container(s)"
+
+    if ($containerCount -gt 1) {
+        Write-Error "Multiple containers found for service $containerName"
+        Cleanup-Containers -reason "Multiple containers found"
+        exit 1
     }
-    exit 1
-}
 
-if ($containerCount -eq 0) {
-    Write-Error "No container found for service $containerName"
-    exit 1
-}
+    if ($containerCount -eq 0) {
+        Write-Error "No container found for service $containerName"
+        Cleanup-Containers -reason "Container not found"
+        exit 1
+    }
 
-$containerId = $containerIds[0]
-Write-Host "Container detected: $containerName ($containerId)"
-# Wait for container health (if available) or for it to be running
-Write-Host "Waiting for container health status..."
-$maxWaitSeconds = 60
-$elapsed = 0
-$sleepInterval = 2
-$healthSupported = $true
-while ($elapsed -lt $maxWaitSeconds) {
-    try {
-        $health = docker inspect --format '{{.State.Health.Status}}' $containerId 2>$null
-        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrEmpty($health)) {
-            # Health not configured; fall back to checking .State.Status
-            $healthSupported = $false
-            $state = docker inspect --format '{{.State.Status}}' $containerId 2>$null
-            if ($state -eq 'running') { break }
-        } else {
-            if ($health -eq 'healthy') { break }
-            if ($health -eq 'unhealthy') {
-                Write-Error "Container reported unhealthy"
-                exit 1
+    $script:containerId = $containerIds[0]
+    Write-Host "Container detected: $containerName ($script:containerId)"
+
+    # ============================================================================
+    # Wait for Container Health
+    # ============================================================================
+    Write-Host "Waiting for container health status..."
+    $maxWaitSeconds = 60
+    $elapsed = 0
+    $sleepInterval = 2
+    $isHealthy = $false
+
+    while ($elapsed -lt $maxWaitSeconds) {
+        try {
+            $health = docker inspect --format '{{.State.Health.Status}}' $script:containerId 2>&1
+            if (-not $?) {
+                # Health not configured; check if running
+                $state = docker inspect --format '{{.State.Status}}' $script:containerId 2>&1
+                if ($state -eq 'running') { 
+                    $isHealthy = $true
+                    break 
+                }
+            } else {
+                if ($health -eq 'healthy') { 
+                    $isHealthy = $true
+                    break 
+                }
+                if ($health -eq 'unhealthy') {
+                    Write-Error "Container reported unhealthy."
+                    $logs = Get-ContainerLogs -ContainerId $script:containerId
+                    Write-Error "Container logs:`n$logs"
+                    Cleanup-Containers -reason "Container unhealthy"
+                    exit 1
+                }
             }
+        } catch {
+            Write-Host "Retrying health check..."
         }
-    } catch {
-        # ignore and retry
+        Start-Sleep -Seconds $sleepInterval
+        $elapsed += $sleepInterval
     }
-    Start-Sleep -Seconds $sleepInterval
-    $elapsed += $sleepInterval
-}
-if ($elapsed -ge $maxWaitSeconds) {
-    if ($healthSupported) {
-        Write-Error "Timed out waiting for container to become healthy"
-    } else {
-        Write-Error "Timed out waiting for container to be running"
+
+    if (-not $isHealthy) {
+        Write-Error "Timed out waiting for container to be ready (${maxWaitSeconds}s)"
+        $logs = Get-ContainerLogs -ContainerId $script:containerId
+        Write-Error "Container logs:`n$logs"
+        Cleanup-Containers -reason "Container health check timeout"
+        exit 1
     }
-    exit 1
-}
 
-# Copy entrypoint to container
-Write-Host "Copying entrypoint $($envVars.APP_ENTRYPOINT_LOCAL_PATH) to container..."
-# Copy to container
-docker cp $envVars.APP_ENTRYPOINT_LOCAL_PATH "${containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)" 2>&1
-if ( -not $?) {
-    Write-Error "Failed to copy entrypoint to container"
-    exit 1
-}
-Write-Host "Entrypoint copied successfully."
-# Set execute permissions
-Write-Host "Setting execute permissions for $($envVars.APP_ENTRYPOINT_SERVER_PATH)..."
-docker exec $containerId dos2unix $envVars.APP_ENTRYPOINT_SERVER_PATH 2>&1
-if ( -not $?) {
-    Write-Error "Failed to convert $envVars.APP_ENTRYPOINT_SERVER_PATH to Unix format"
-    exit 1
-} 
-Write-Host "Converted to Unix format successfully."
+    Write-Host "Container is ready."
 
-docker exec $containerId chmod +x $envVars.APP_ENTRYPOINT_SERVER_PATH 2>&1
-if (-not $?) {
-    Write-Error "Failed to change permissions for $envVars.APP_ENTRYPOINT_SERVER_PATH"
-    exit 1
-}
-Write-Host "Permissions changed successfully."
+    # ============================================================================
+    # Copy and Execute Entrypoint
+    # ============================================================================
+    Write-Host "Copying entrypoint to container..."
+    Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)`"" `
+        -ErrorMessage "Failed to copy entrypoint to container"
 
-Write-Host "Executing entrypoint in container..."
-docker exec $containerId sh $envVars.APP_ENTRYPOINT_SERVER_PATH 2>&1
-if ( -not $?) {
-    Write-Error "Failed to execute entrypoint in container"
+    Write-Host "Converting line endings to Unix format..."
+    Invoke-DockerExecCommand -ContainerId $script:containerId `
+        -Command "dos2unix $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
+        -ErrorMessage "Failed to convert to Unix format"
+
+    Write-Host "Setting execute permissions..."
+    Invoke-DockerExecCommand -ContainerId $script:containerId `
+        -Command "chmod +x $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
+        -ErrorMessage "Failed to set execute permissions"
+
+    Write-Host "Executing entrypoint in container..."
+    Invoke-DockerExecCommand -ContainerId $script:containerId `
+        -Command "sh $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
+        -ErrorMessage "Failed to execute entrypoint"
+
+    Write-Host "Application deployment completed successfully."
+    $script:cleanupOnExit = $false  # Success: don't clean up
+
+} catch {
+    Write-Error "Critical error during deployment: $_"
+    Cleanup-Containers -reason "Critical exception: $_"
     exit 1
-} 
-Write-Host "Entrypoint executed successfully."
+
+} finally {
+    # Final cleanup if script exits unexpectedly
+    if ($script:cleanupOnExit) {
+        Write-Host "Performing cleanup due to script exit..."
+        Cleanup-Containers -reason "Script exit"
+    }
+}
