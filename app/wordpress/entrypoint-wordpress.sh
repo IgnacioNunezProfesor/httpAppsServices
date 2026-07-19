@@ -7,58 +7,57 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
 # Debug: Print environment variables
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ===== DOCKER ENVIRONMENT VARIABLES DEBUG ====="
 
-# Variables del Servicio: db
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_PORT=${DB_PORT:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_DATA_DIR=${SERVER_DATA_DIR:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_DATA_DIR=${LOCAL_DATA_DIR:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_LOG_PATH=${SERVER_LOG_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_LOG_PATH=${LOCAL_LOG_PATH:-NOT SET}"
+# Variables to check (from provided config)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_IMAGE_NAME=${HTTP_IMAGE_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_CONTAINER_NAME=${HTTP_CONTAINER_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_DOCKERFILE_PATH=${HTTP_DOCKERFILE_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] BUILD_HTTP_APK_REQ=${BUILD_HTTP_APK_REQ:-NOT SET}"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_NAME=${HTTP_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_PORT=${HTTP_PORT:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_LOCAL_ROOT_PATH=${HTTP_LOCAL_ROOT_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_SERVER_ROOT_PATH=${HTTP_SERVER_ROOT_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_LOCAL_INFO_PATH=${HTTP_LOCAL_INFO_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_SERVER_INFO_PATH=${HTTP_SERVER_INFO_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_ALIAS_INFO_PATH=${HTTP_ALIAS_INFO_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_LOCAL_LOG_PATH=${HTTP_LOCAL_LOG_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_SERVER_LOG_PATH=${HTTP_SERVER_LOG_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_IP=${HTTP_IP:-NOT SET}"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_CONTAINER_NAME=${DB_CONTAINER_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_DOCKERFILE_PATH=${DB_DOCKERFILE_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_IMAGE_NAME=${DB_IMAGE_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_SERVER_ID=${DB_SERVER_ID:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_SERVER_PORT=${DB_SERVER_PORT:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_LOCAL_PORT=${DB_LOCAL_PORT:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_SERVER_DATA_DIR=${DB_SERVER_DATA_DIR:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_LOCAL_DATA_DIR=${DB_LOCAL_DATA_DIR:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_SERVER_LOG=${DB_SERVER_LOG:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_LOCAL_LOG_PATH=${DB_LOCAL_LOG_PATH:-NOT SET}"
+
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_NAME=${DB_NAME:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_USER=${DB_USER:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_PASS=${DB_PASS:-NOT SET (Set for security)}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_IP=${DB_IP:-NOT SET}"
 
-# Variables del Servicio: http (WordPress)
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] WORDPRESS_DB_PORT=${WORDPRESS_DB_PORT:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD:-NOT SET (Set for security)}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_NAME=${SERVER_NAME:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_PORT=${SERVER_PORT:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_ROOT_PATH=${LOCAL_ROOT_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_ROOT_PATH=${SERVER_ROOT_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_LOG_PATH=${LOCAL_LOG_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_LOG_PATH=${SERVER_LOG_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_INFO_PATH=${LOCAL_INFO_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_INFO_PATH=${SERVER_INFO_PATH:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] HTTP_IP=${HTTP_IP:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_WP_ADMIN_USER=${APP_WP_ADMIN_USER:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_WP_ADMIN_PASS=${APP_WP_ADMIN_PASS:-NOT SET (Set for security)}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_WP_ADMIN_EMAIL=${APP_WP_ADMIN_EMAIL:-NOT SET}"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ENTRYPOINT_PATH=${APP_ENTRYPOINT_PATH:-NOT SET}"
-
-# Variable común de Red
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] NETWORK_DRIVER=${NETWORK_DRIVER:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] NETWORK_NAME=${NETWORK_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] NETWORK_SUBNET=${NETWORK_SUBNET:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] NETWORK_SUBNET_GATEWAY=${NETWORK_SUBNET_GATEWAY:-NOT SET}"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_NAME=${APP_NAME:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_GITHUB_URL=${APP_GITHUB_URL:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_LOCAL_PATH=${APP_LOCAL_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_COMPOSE_PATH=${APP_COMPOSE_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ENTRYPOINT_LOCAL_PATH=${APP_ENTRYPOINT_LOCAL_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ENTRYPOINT_SERVER_PATH=${APP_ENTRYPOINT_SERVER_PATH:-NOT SET}"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ADMIN_USER=${APP_ADMIN_USER:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ADMIN_PASS=${APP_ADMIN_PASS:-NOT SET (Set for security)}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ADMIN_EMAIL=${APP_ADMIN_EMAIL:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ==========================================="
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Waiting for MySQL to be available..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Attempting to connect to ${WORDPRESS_DB_HOST}..."
-#
-RETRY_COUNT=0
-MAX_RETRIES=30
-#
-# Comentado según tu flujo, pero recuerda descomentarlo si necesitas que espere a MariaDB de forma estricta
-#until mariadb-admin ping -h"$WORDPRESS_DB_HOST" -u"$WORDPRESS_DB_USER" -p"$WORDPRESS_DB_PASSWORD" --silent 2>/dev/null; do
-#    RETRY_COUNT=$((RETRY_COUNT + 1))
-#    if [ $RETRY_COUNT -gt $MAX_RETRIES ]; then
-#        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: MySQL did not become available after $MAX_RETRIES attempts"
-#        exit 1
-#    fi
-#    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: MySQL not ready yet (attempt $RETRY_COUNT/$MAX_RETRIES), waiting 2 seconds..."
-#    sleep 2
-#done
-#
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: MySQL is now available"
 #
 cd "$SERVER_ROOT_PATH"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Changed directory to: $(pwd)"
@@ -85,15 +84,14 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Checking if wp-config.php exists..."
 if [ ! -f wp-config.php ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: wp-config.php not found. Generating..."
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Creating config with:"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Database: $WORDPRESS_DB_NAME"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - User: $WORDPRESS_DB_USER"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Host: $WORDPRESS_DB_HOST"
-    
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Database: $DB_NAME"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - User: $DB_USER"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Host: $DB_HOST"
     $WP_CMD config create \
-        --dbname="$WORDPRESS_DB_NAME" \
-        --dbuser="$WORDPRESS_DB_USER" \
-        --dbpass="$WORDPRESS_DB_PASSWORD" \
-        --dbhost="$WORDPRESS_DB_HOST" \
+        --dbname="$DB_NAME" \
+        --dbuser="$DB_USER" \
+        --dbpass="$DB_PASS" \
+        --dbhost="$DB_HOST" \
         --skip-check \
         --allow-root && echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: wp-config.php created" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to create wp-config.php"
 else
@@ -107,15 +105,15 @@ if ! $WP_CMD core is-installed --allow-root 2>/dev/null; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Installing WordPress with:"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - URL: $SERVER_NAME"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Title: $APP_NAME"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Admin User: $APP_WP_ADMIN_USER"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Admin Email: $APP_WP_ADMIN_EMAIL"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Admin User: $APP_ADMIN_USER"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]   - Admin Email: $APP_ADMIN_EMAIL"
     
     $WP_CMD core install \
         --url="$SERVER_NAME" \
         --title="$APP_NAME" \
-        --admin_user="$APP_WP_ADMIN_USER" \
-        --admin_password="$APP_WP_ADMIN_PASS" \
-        --admin_email="$APP_WP_ADMIN_EMAIL" \
+        --admin_user="$APP_ADMIN_USER" \
+        --admin_password="$APP_ADMIN_PASS" \
+        --admin_email="$APP_ADMIN_EMAIL" \
         --skip-email \
         --allow-root && echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: WordPress installation completed" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to install WordPress"
 else

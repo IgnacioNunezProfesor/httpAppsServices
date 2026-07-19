@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash -x
 set -e
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting PHP-Apache entrypoint script..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"

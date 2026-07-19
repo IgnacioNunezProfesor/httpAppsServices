@@ -44,7 +44,8 @@ $buildArgs = EnvVarsToBuildArgs -envVars $buildVars
 
 # Construir parámetros docker
 $dockerParams = @(
-    'build') 
+    'build'
+) 
 if ($buildArgs.Count -gt 0) { 
     $dockerParams += $buildArgs 
 } 

@@ -5,6 +5,8 @@ services:
     build:
       context: ..
       dockerfile: ${DB_DOCKERFILE_PATH}
+      args:
+        - name=value
     restart: always
     networks:
       - MyLAN
@@ -27,7 +29,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "mariadb -u$DB_USER -p$DB_PASS -h 127.0.0.1 -e 'SELECT 1;'"]
       interval: 30s
-      timeout: 10s
+      timeout: 100s
       retries: 3
       start_period: 40s
   http:
@@ -36,12 +38,17 @@ services:
     build:
       context: ..
       dockerfile: ${HTTP_DOCKERFILE_PATH}
+      args:
+        - BUILD_HTTP_APK_REQ=${BUILD_HTTP_APK_REQ}
     restart: always
     networks:
       - MyLAN
     ports:
       - "${HTTP_PORT}:${HTTP_PORT}"
     environment:
+      IMAGE_NAME: ${HTTP_IMAGE_NAME}
+      CONTAINER_NAME: ${HTTP_CONTAINER_NAME}
+      DOCKERFILE_PATH: ${HTTP_DOCKERFILE_PATH}
       SERVER_NAME: ${HTTP_NAME}
       SERVER_PORT: ${HTTP_PORT}
       LOCAL_ROOT_PATH: ${HTTP_LOCAL_ROOT_PATH}
@@ -54,17 +61,16 @@ services:
       IP: ${HTTP_IP}
       NETWORK_NAME: ${NETWORK_NAME}
       APP_NAME: ${APP_NAME}
-      APP_DB_HOST: ${DB_CONTAINER_NAME} 
-      APP_DB_PORT: ${DB_SERVER_PORT}
-      APP_DB_NAME: ${DB_NAME}
-      APP_DB_USER: ${DB_USER}
-      APP_DB_PASSWORD: ${DB_PASS}
+      DB_HOST: ${DB_CONTAINER_NAME} 
+      DB_PORT: ${DB_SERVER_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASS}
       APP_ADMIN_USER: ${APP_ADMIN_USER}
       APP_ADMIN_PASS: ${APP_ADMIN_PASS}
       APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL}
       APP_ENTRYPOINT_LOCAL_PATH: ${APP_ENTRYPOINT_LOCAL_PATH}
       APP_ENTRYPOINT_SERVER_PATH: ${APP_ENTRYPOINT_SERVER_PATH}
-      BUILD_HTTP_APK_REQ: ${BUILD_HTTP_APK_REQ}
     volumes:
       - ${HTTP_LOCAL_ROOT_PATH}:${HTTP_SERVER_ROOT_PATH}
       - ${HTTP_LOCAL_INFO_PATH}:${HTTP_SERVER_INFO_PATH}
@@ -73,9 +79,9 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://${HTTP_NAME}:${HTTP_PORT}/"]
+      test: ["CMD", "curl", "-f", "http://${HTTP_NAME}:${HTTP_PORT}/server-status"]
       interval: 30s
-      timeout: 10s
+      timeout: 100s
       retries: 3
       start_period: 40s
 networks:

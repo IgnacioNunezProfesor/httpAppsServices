@@ -4,12 +4,13 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "dockerfile",
             "request": "launch",
             "name": "Debug Build phpapachedev.dockerfile",
             "dockerfile": "./docker/phpapache.dev.dockerfile",
-            "contextPath": "${workspaceFolder}"
+            "contextPath": "${workspaceFolder}/"
         },
         {
             "name": "Debug runAppEnvFile.ps1 wordpress",

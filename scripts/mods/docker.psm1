@@ -22,7 +22,18 @@ function Invoke-DockerCommand {
         [string]$ErrorMessage
     )
 
+    write-Host "Executing Docker command: docker $Command" -ForegroundColor Yellow
+
     $output = Invoke-Expression "docker $Command 2>&1"
+
+    # If output is an array, join into a single well-formatted string for display
+    if ($output -is [System.Array]) {
+        $formattedOutput = $output -join "`n"
+    } else {
+        $formattedOutput = $output
+    }
+
+    write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
     
     if (-not $?) {
         throw "${ErrorMessage}:`n$output"

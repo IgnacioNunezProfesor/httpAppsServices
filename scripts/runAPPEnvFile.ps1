@@ -92,11 +92,14 @@ try {
     # ============================================================================
     # Start Docker Containers
     # ============================================================================
-    Write-Host "Starting Docker containers..."
+    Write-Host "Starting Docker containers..." -ForegroundColor Green
+
+
+
     Invoke-DockerCommand -Command "compose -f `"$($envVars.APP_COMPOSE_PATH)`" --env-file `"$EnvFile`" up -d --build" `
         -ErrorMessage "Failed to start Docker containers"
 
-    Write-Host "Containers started successfully."
+    Write-Host "Containers started successfully." -ForegroundColor Green
     $script:cleanupOnExit = $true  # Mark that we have containers to clean up
 
     # ============================================================================
@@ -119,7 +122,8 @@ try {
         exit 1
     }
 
-    if ($containerCount -eq 0) {
+    if (
+        $containerCount -eq 0) {
         Write-Error "No container found for service $containerName"
         Cleanup-Containers -reason "Container not found"
         exit 1
@@ -131,79 +135,76 @@ try {
     # ============================================================================
     # Wait for Container Health
     # ============================================================================
-    Write-Host "Waiting for container health status..."
-    $maxWaitSeconds = 60
-    $elapsed = 0
-    $sleepInterval = 2
-    $isHealthy = $false
+   Write-Host "Waiting for container health status..."
+$maxWaitSeconds = 160
+$elapsed = 0
+$sleepInterval = 2
+$isHealthy = $false
 
-    while ($elapsed -lt $maxWaitSeconds) {
-        try {
-            $health = docker inspect --format '{{.State.Health.Status}}' $script:containerId 2>&1
-            if (-not $?) {
-                # Health not configured; check if running
-                $state = docker inspect --format '{{.State.Status}}' $script:containerId 2>&1
-                if ($state -eq 'running') { 
-                    $isHealthy = $true
-                    break 
-                }
-            } else {
-                if ($health -eq 'healthy') { 
-                    $isHealthy = $true
-                    break 
-                }
-                if ($health -eq 'unhealthy') {
-                    Write-Error "Container reported unhealthy."
-                    $logs = Get-ContainerLogs -ContainerId $script:containerId
-                    Write-Error "Container logs:`n$logs"
-                    Clear-Containers -reason "Container unhealthy"
-                    exit 1
-                }
+while ($elapsed -lt $maxWaitSeconds) {
+    try {
+        # Capturamos la salida y limpiamos espacios o saltos de línea con .Trim()
+        $health = (docker inspect --format '{{.State.Health.Status}}' $script:containerId 2>$null).Trim()
+        write-Host "Health status: $health (elapsed: ${elapsed}s of ${maxWaitSeconds}s)"
+        
+        # Si la respuesta está vacía, significa que no hay healthcheck configurado
+        if ([string]::IsNullOrEmpty($health)) {
+            $state = (docker inspect --format '{{.State.Status}}' $script:containerId 2>$null).Trim()
+            if ($state -eq 'running') { 
+                $isHealthy = $true
+                break 
             }
-        } catch {
-            Write-Host "Retrying health check..."
+        } else {
+            # Ahora la comparación es segura gracias al .Trim()
+            if ($health -eq 'healthy') { 
+                $isHealthy = $true
+                break 
+            }
+            if ($health -eq 'unhealthy') {
+                Write-Error "Container reported unhealthy."
+                $logs = Get-ContainerLogs -ContainerId $script:containerId
+                Write-Error "Container logs:`n$logs"
+                Clear-Containers -reason "Container unhealthy"
+                exit 1
+            }
+            # Si dice 'starting', simplemente dejamos que continúe el bucle
         }
-        Start-Sleep -Seconds $sleepInterval
-        $elapsed += $sleepInterval
+    } catch {
+        Write-Host "Retrying health check due to an unexpected error..."
     }
+    
+    Start-Sleep -Seconds $sleepInterval
+    $elapsed += $sleepInterval
+}
 
-    if (-not $isHealthy) {
-        Write-Error "Timed out waiting for container to be ready (${maxWaitSeconds}s)"
-        $logs = Get-ContainerLogs -ContainerId $script:containerId
-        Write-Error "Container logs:`n$logs"
-        Clear-Containers -reason "Container health check timeout"
-        exit 1
-    }
+if (-not $isHealthy) {
+    Write-Error "Timed out waiting for container to be ready (${maxWaitSeconds}s)"
+    $logs = Get-ContainerLogs -ContainerId $script:containerId
+    Write-Error "Container logs:`n$logs"
+    Clear-Containers -reason "Container health check timeout"
+    exit 1
+}
 
-    Write-Host "Container is ready."
+Write-Host "Container is ready."
 
     # ============================================================================
     # Copy and Execute Entrypoint
     # ============================================================================
-
-    
-
     Write-Host "Copying entrypoint to container..."
     Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)`"" `
         -ErrorMessage "Failed to copy entrypoint to container"
-
-
-
     Write-Host "Converting line endings to Unix format..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "dos2unix $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
         -ErrorMessage "Failed to convert to Unix format"
-
     Write-Host "Setting execute permissions..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "chmod +x $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
         -ErrorMessage "Failed to set execute permissions"
-
     Write-Host "Executing entrypoint in container..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "sh $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
         -ErrorMessage "Failed to execute entrypoint"
-
     Write-Host "Application deployment completed successfully."
     $script:cleanupOnExit = $false  # Success: don't clean up
 
@@ -211,7 +212,6 @@ try {
     Write-Error "Critical error during deployment: $_"
     Clear-Containers -reason "Critical exception: $_"
     exit 1
-
 } finally {
     # Final cleanup if script exits unexpectedly
     if ($script:cleanupOnExit) {
