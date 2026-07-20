@@ -4,6 +4,7 @@ param(
     [switch]$RemoveAll,
     [switch]$Update,
     [switch]$Help,
+    [switch]$Purge,
     [string]$Name,
     [string]$Url,
     [string]$Path,
@@ -18,30 +19,35 @@ Import-Module .\scripts\mods\AppFromGit.psm1 -Force
 
 function Show-Help {
     Write-Host "============================="
-    Write-Host "   AYUDA - Gestión de Submódulos"
+    Write-Host " AYUDA - Gestión de Submódulos"
     Write-Host "============================="
     Write-Host "USO:"
     Write-Host ""
     Write-Host "Modo interactivo:"
-    Write-Host "  .\AdminApp.ps1"
+    Write-Host " .\AdminApp.ps1"
     Write-Host ""
     Write-Host "Modo directo con parámetros:"
     Write-Host ""
-    Write-Host "  Añadir submódulo:"
-    Write-Host "  .\AdminApp.ps1 -Add -Name <nombre> -Url <url> -Path <ruta>"
+    Write-Host " Añadir submódulo:"
+    Write-Host " .\AdminApp.ps1 -Add -Name <nombre> -Url <url> -Path <ruta>"
     Write-Host ""
-    Write-Host "  Eliminar submódulo:"
-    Write-Host "  .\AdminApp.ps1 -Remove -Path <ruta>"
+    Write-Host " Eliminar submódulo:"
+    Write-Host " .\AdminApp.ps1 -Remove -Path <ruta>"
     Write-Host ""
-    Write-Host "  Eliminar todos:"
-    Write-Host "  .\AdminApp.ps1 -RemoveAll"
+    Write-Host " Eliminar todos los submódulos:"
+    Write-Host " .\AdminApp.ps1 -RemoveAll"
     Write-Host ""
-    Write-Host "  Actualizar submódulos:"
-    Write-Host "  .\AdminApp.ps1 -Update -Target all"
-    Write-Host "  .\AdminApp.ps1 -Update -Target <ruta>"
+    Write-Host " Actualizar submódulos:"
+    Write-Host " .\AdminApp.ps1 -Update -Target all"
+    Write-Host " .\AdminApp.ps1 -Update -Target <ruta>"
+    Write-Host ""
+    Write-Host " PURGA COMPLETA DEL SISTEMA:"
+    Write-Host " (Elimina contenedores, imágenes, carpetas locales y todas las apps)"
+    Write-Host " .\AdminApp.ps1 -Purge"
     Write-Host ""
     Write-Host "============================="
 }
+
 
 function MainMenu {
     Write-Host "============================="
@@ -51,7 +57,8 @@ function MainMenu {
     Write-Host "2. Eliminar un submódulo"
     Write-Host "3. Eliminar TODOS los submódulos"
     Write-Host "4. Actualizar submódulos"
-    Write-Host "5. Ayuda"
+    Write-Host "5. Purga completa del sistema"
+    Write-Host "?. Ayuda"
     Write-Host "0. Salir"
     Write-Host "============================="
 
@@ -94,6 +101,11 @@ function MainMenu {
             MainMenu
         }
         "5" {
+            Clear-All
+            MainMenu
+        }
+
+        "?" {
             Show-Help
             MainMenu
         }
@@ -107,6 +119,38 @@ function MainMenu {
         }
     }
 }
+
+function Clear-All {
+    Write-Host "============================="
+    Write-Host " PURGA COMPLETA DEL SISTEMA"
+    Write-Host "============================="
+
+    Write-Host "Deteniendo y eliminando contenedores..." -ForegroundColor Yellow
+    docker stop $(docker ps -aq) 2>$null
+    docker rm $(docker ps -aq) 2>$null
+
+    Write-Host "Eliminando todas las imágenes..." -ForegroundColor Yellow
+    docker rmi $(docker images -q) -f 2>$null
+
+    Write-Host "Eliminando carpetas locales..." -ForegroundColor Yellow
+    $folders = @(".\data", ".\logs")
+    foreach ($folder in $folders) {
+        if (Test-Path $folder) {
+            Remove-Item $folder -Recurse -Force
+            Write-Host "Carpeta eliminada: $folder"
+        } else {
+            Write-Host "Carpeta no encontrada: $folder"
+        }
+    }
+
+    Write-Host "Eliminando todas las aplicaciones..." -ForegroundColor Yellow
+    Remove-AllApps
+
+    Write-Host "============================="
+    Write-Host " PURGA COMPLETA FINALIZADA"
+    Write-Host "============================="
+}
+
 
 # --- LÓGICA PRINCIPAL ---
 
