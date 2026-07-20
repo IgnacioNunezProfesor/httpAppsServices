@@ -27,11 +27,12 @@ services:
       - ${DB_LOCAL_DATA_DIR}:${DB_SERVER_DATA_DIR}
       - ${DB_LOCAL_LOG_PATH}:${DB_SERVER_LOG}
     healthcheck:
-      test: ["CMD-SHELL", "mariadb -u$DB_USER -p$DB_PASS -h 127.0.0.1 -e 'SELECT 1;'"]
+      test: ["CMD-SHELL", "mariadb -u$DB_USER -p$DB_PASS -h 127.0.0.1 -P ${SERVER_PORT:-3306} -e 'SELECT 1;'"]
       interval: 30s
-      timeout: 100s
-      retries: 3
-      start_period: 40s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
   http:
     image: ${HTTP_IMAGE_NAME}
     container_name: ${HTTP_CONTAINER_NAME}

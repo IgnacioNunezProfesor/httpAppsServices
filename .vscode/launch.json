@@ -20,6 +20,13 @@
             "cwd": "${cwd}"
         },
         {
+            "name": "Debug runAppEnvFile.ps1 moodle",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "& \"${workspaceFolder}\\scripts\\runAppEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.moodle.env\"",
+            "cwd": "${cwd}"
+        },
+        {
             "name": "Debug buildEnvFile.ps1 dev.phpapache.env",
             "type": "PowerShell",
             "request": "launch",
