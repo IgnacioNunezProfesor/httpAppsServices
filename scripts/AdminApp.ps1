@@ -184,6 +184,11 @@ if ($RemoveAll) {
     exit
 }
 
+if ($Purge) {
+    Clear-All
+    exit
+}
+
 if ($Update) {
     if (-not $Target) {
         Write-Host "Falta parámetro: -Target (all o ruta)" -ForegroundColor Red

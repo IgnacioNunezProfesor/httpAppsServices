@@ -118,14 +118,14 @@ try {
 
     if ($containerCount -gt 1) {
         Write-Error "Multiple containers found for service $containerName"
-        Cleanup-Containers -reason "Multiple containers found"
+        Clear-Containers -reason "Multiple containers found"
         exit 1
     }
 
     if (
         $containerCount -eq 0) {
         Write-Error "No container found for service $containerName"
-        Cleanup-Containers -reason "Container not found"
+        Clear-Containers -reason "Container not found"
         exit 1
     }
 
