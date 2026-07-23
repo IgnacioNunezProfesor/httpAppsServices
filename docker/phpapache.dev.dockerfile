@@ -13,7 +13,7 @@ RUN apk update && apk upgrade && \
     composer \
     curl \
     dos2unix \
-    ${BUILD_APK_REQ}
+    ${BUILD_HTTP_APK_REQ}
 
 # Create symlink to make php command available (for compatibility)
 RUN ln -s /usr/bin/php84 /usr/bin/php
