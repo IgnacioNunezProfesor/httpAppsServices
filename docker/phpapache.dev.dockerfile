@@ -31,6 +31,10 @@ RUN PHP_BIN="$(ls -1 /usr/bin/php* | grep -E 'php[0-9]+' | head -n 1)" && \
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
 COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
 
+COPY ./docker/phpapache/php/php.ini /tmp/php.ini
+COPY ./docker/phpapache/php/conf.d/*.ini /tmp/conf.d/
+
+
 # Detectar versión de PHP y copiar php.ini y conf.d
 RUN PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;')" && \
     echo "Detected PHP version: $PHP_VER" && \
