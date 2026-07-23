@@ -1,6 +1,6 @@
 FROM alpine:3.20
 
-ARG BUILD_APK_REQ=""
+ARG BUILD_HTTP_APK_REQ=""
 
 # Update and install Apache, PHP 8.4 and extensions
 RUN apk update && apk upgrade && \
