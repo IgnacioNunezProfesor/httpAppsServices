@@ -8,8 +8,8 @@ RUN apk update && apk upgrade && \
     apache2 \
     apache2-utils \
     apache2-proxy \
-    php84 \
-    php84-apache2 \   
+    php \
+    php-apache2 \   
     composer \
     curl \
     dos2unix \
