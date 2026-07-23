@@ -11,8 +11,8 @@ RUN apk update && apk upgrade && \
     php8.5 \
     php8.5-apache2 \   
     curl \
-    dos2unix \
-    ${BUILD_APK_REQ}
+    dos2unix 
+    #${BUILD_APK_REQ}
 
 # Copy Apache configuration
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
