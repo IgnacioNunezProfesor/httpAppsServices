@@ -16,7 +16,11 @@ RUN apk update && apk upgrade && \
     ${BUILD_HTTP_APK_REQ}
 
 # Create symlink to make php command available (for compatibility)
-RUN ln -s /usr/bin/php84 /usr/bin/php
+RUN if command -v php >/dev/null 2>&1; then \
+        ln -sf "$(command -v php)" /usr/bin/php; \
+    else \
+        ln -sf /usr/bin/php84 /usr/bin/php; \
+    fi
 
 # Copy Apache configuration
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
