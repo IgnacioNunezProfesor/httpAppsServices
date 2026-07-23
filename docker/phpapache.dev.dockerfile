@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:latest
 
 ARG BUILD_HTTP_APK_REQ=""
 
