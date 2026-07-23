@@ -15,12 +15,17 @@ RUN apk update && apk upgrade && \
     dos2unix \
     ${BUILD_HTTP_APK_REQ}
 
-# Create symlink to make php command available (for compatibility)
-RUN if command -v php >/dev/null 2>&1; then \
-        ln -sf "$(command -v php)" /usr/bin/php; \
+# Detectar binario real de PHP y crear symlink seguro
+RUN PHP_BIN="$(ls -1 /usr/bin/php* | grep -E 'php[0-9]+' | head -n 1)" && \
+    if [ -n "$PHP_BIN" ]; then \
+        echo "Detected PHP binary: $PHP_BIN"; \
+        rm -f /usr/bin/php; \
+        ln -s "$PHP_BIN" /usr/bin/php; \
     else \
-        ln -sf /usr/bin/php84 /usr/bin/php; \
+        echo "ERROR: No PHP binary found"; \
+        exit 1; \
     fi
+
 
 # Copy Apache configuration
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
