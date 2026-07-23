@@ -26,20 +26,20 @@ RUN PHP_BIN="$(ls -1 /usr/bin/php* | grep -E 'php[0-9]+' | head -n 1)" && \
         exit 1; \
     fi
 
-
-# Copy Apache configuration
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
 COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
 
+# Copy PHP configuration files into temporary location
 COPY ./docker/phpapache/php/php.ini /tmp/php.ini
 COPY ./docker/phpapache/php/conf.d/*.ini /tmp/conf.d/
 
-
-# Detectar versión de PHP y copiar php.ini y conf.d
+# Detect PHP version and move configuration files to correct directory
 RUN PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;')" && \
     echo "Detected PHP version: $PHP_VER" && \
-    cp ./docker/phpapache/php/php.ini "/etc/php${PHP_VER}/php.ini" && \
-    cp ./docker/phpapache/php/conf.d/*.ini "/etc/php${PHP_VER}/conf.d/"
+    mv /tmp/php.ini "/etc/php${PHP_VER}/php.ini" && \
+    mv /tmp/conf.d/*.ini "/etc/php${PHP_VER}/conf.d/"
+
+
 
 
 # Enable Apache modules required for PHP
