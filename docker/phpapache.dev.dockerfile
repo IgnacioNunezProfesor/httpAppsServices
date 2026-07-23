@@ -39,9 +39,4 @@ RUN sed -i 's|^#\(LoadModule.*mod_rewrite\)|\1|' /etc/apache2/httpd.conf && \
 COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh
 RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh
 
-# Verify PHP installation
-RUN php -v && \
-    php -m | grep -i mysqli && \
-    echo "PHP 8.4 modules loaded successfully"
-
 ENTRYPOINT ["sh", "/entrypoint.sh"]
