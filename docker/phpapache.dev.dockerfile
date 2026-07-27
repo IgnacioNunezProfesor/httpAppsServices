@@ -3,34 +3,14 @@ FROM alpine:latest
 ARG BUILD_HTTP_APK_REQ=""
 
 # Update and install Apache, PHP 8.4 and extensions
-RUN apk update && apk upgrade && \
-    apk --no-cache add apache2 apache2-utils apache2-proxy php php-apache2 curl dos2unix ${BUILD_HTTP_APK_REQ} && \
-    echo "APP Installed PHP version: $(php -v | head -n 1)" && \
-    echo "APP Installed Apache version: $(httpd -v | head -n 1)"
-
-# Detectar binario real de PHP y crear symlink seguro
-RUN PHP_BIN="$(ls -1 /usr/bin/php* | grep -E 'php[0-9]+' | head -n 1)" && \
-    if [ -n "$PHP_BIN" ]; then \
-        echo "Detected PHP binary: $PHP_BIN"; \
-        rm -f /usr/bin/php; \
-        ln -s "$PHP_BIN" /usr/bin/php; \
-    else \
-        echo "ERROR: No PHP binary found"; \
-        exit 1; \
-    fi
+RUN apk update && apk upgrade && apk --no-cache add apache2 apache2-utils apache2-proxy php php-apache2 curl dos2unix ${BUILD_HTTP_APK_REQ}
 
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
 COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
 
 # Copy PHP configuration files into temporary location
-COPY ./docker/phpapache/php/php.ini /tmp/php.ini
-COPY ./docker/phpapache/php/conf.d/*.ini /tmp/conf.d/
-
-# Detect PHP version and move configuration files to correct directory
-RUN PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;')" && \
-    echo "Detected PHP version: $PHP_VER" && \
-    mv /tmp/php.ini "/etc/php${PHP_VER}/php.ini" && \
-    mv /tmp/conf.d/*.ini "/etc/php${PHP_VER}/conf.d/"
+COPY ./docker/phpapache/php/php.ini /etc/php/php.ini
+COPY ./docker/phpapache/php/conf.d/*.ini /etc/php/conf.d/
 
 # Copy and prepare entrypoint script
 COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh
