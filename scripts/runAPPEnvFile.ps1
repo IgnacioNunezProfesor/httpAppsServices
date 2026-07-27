@@ -147,7 +147,8 @@ while ($elapsed -lt $maxWaitSeconds) {
     try {
         # Capturamos la salida y limpiamos espacios o saltos de línea con .Trim()
         $health = (docker inspect --format '{{.State.Health.Status}}' $script:containerId 2>$null).Trim()
-        write-Host "Health status: $health (elapsed: ${elapsed}s of ${maxWaitSeconds}s)"
+        $getCheck = (docker inspect --format '{{json .Config.Healthcheck.Test}}' $script:containerId 2>$null).Trim()
+        write-Host "Health: $getCheck status: $health (elapsed: ${elapsed}s of ${maxWaitSeconds}s)"
         
         # Si la respuesta está vacía, significa que no hay healthcheck configurado
         if ([string]::IsNullOrEmpty($health)) {

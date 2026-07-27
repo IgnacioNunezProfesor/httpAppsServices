@@ -32,14 +32,6 @@ RUN PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;')" && \
     mv /tmp/php.ini "/etc/php${PHP_VER}/php.ini" && \
     mv /tmp/conf.d/*.ini "/etc/php${PHP_VER}/conf.d/"
 
-
-
-
-# Enable Apache modules required for PHP
-RUN sed -i 's|^#\(LoadModule.*mod_rewrite\)|\1|' /etc/apache2/httpd.conf && \
-    sed -i 's|^#\(LoadModule.*mod_proxy\)|\1|' /etc/apache2/httpd.conf && \
-    sed -i 's|^#\(LoadModule.*mod_proxy_http\)|\1|' /etc/apache2/httpd.conf
-
 # Copy and prepare entrypoint script
 COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh
 RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh

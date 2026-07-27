@@ -86,7 +86,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://${HTTP_CONTAINER_NAME}:${HTTP_local_PORT}/server-status"]
+      test: ["CMD", "curl", "-f", "http://${HTTP_NAME}:${HTTP_LOCAL_PORT}/server-status"]
       interval: 30s
       timeout: 100s
       retries: 3
