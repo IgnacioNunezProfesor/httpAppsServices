@@ -137,20 +137,20 @@ try {
     # ============================================================================
     # Wait for Container Health
     # ============================================================================
-   Write-Host "Waiting for container health status..."
-$maxWaitSeconds = 160
-$elapsed = 0
-$sleepInterval = 10
-$isHealthy = $false
+#Write-Host "Waiting for container health status..."
+#$maxWaitSeconds = 160
+#$elapsed = 0
+#$sleepInterval = 10
+#$isHealthy = $false
 
 #while ($elapsed -lt $maxWaitSeconds) {
 #    try {
-#        # Capturamos la salida y limpiamos espacios o saltos de línea con .Trim()
+        # Capturamos la salida y limpiamos espacios o saltos de línea con .Trim()
 #        $health = (docker inspect --format '{{.State.Health.Status}}' $script:containerId 2>$null).Trim()
 #        $getCheck = (docker inspect --format '{{json .Config.Healthcheck.Test}}' $script:containerId 2>$null).Trim()
 #        write-Host "Health: $getCheck status: $health (elapsed: ${elapsed}s of ${maxWaitSeconds}s)"
-#        
-#        # Si la respuesta está vacía, significa que no hay healthcheck configurado
+        
+        # Si la respuesta está vacía, significa que no hay healthcheck configurado
 #        if ([string]::IsNullOrEmpty($health)) {
 #            $state = (docker inspect --format '{{.State.Status}}' $script:containerId 2>$null).Trim()
 #            if ($state -eq 'running') { 
@@ -158,7 +158,7 @@ $isHealthy = $false
 #                break 
 #            }
 #        } else {
-#            # Ahora la comparación es segura gracias al .Trim()
+            # Ahora la comparación es segura gracias al .Trim()
 #            if ($health -eq 'healthy') { 
 #                $isHealthy = $true
 #                break 
@@ -170,16 +170,16 @@ $isHealthy = $false
 #                Clear-Containers -reason "Container unhealthy"
 #                exit 1
 #            }
-#            # Si dice 'starting', simplemente dejamos que continúe el bucle
+            # Si dice 'starting', simplemente dejamos que continúe el bucle
 #        }
 #    } catch {
 #        Write-Host "Retrying health check due to an unexpected error..."
 #    }
-#    
+    
 #    Start-Sleep -Seconds $sleepInterval
 #    $elapsed += $sleepInterval
 #}
-#
+
 #if (-not $isHealthy) {
 #    Write-Error "Timed out waiting for container to be ready (${maxWaitSeconds}s)"
 #    $logs = Get-ContainerLogs -ContainerId $script:containerId
