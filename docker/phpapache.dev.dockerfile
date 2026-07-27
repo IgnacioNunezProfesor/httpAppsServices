@@ -4,16 +4,9 @@ ARG BUILD_HTTP_APK_REQ=""
 
 # Update and install Apache, PHP 8.4 and extensions
 RUN apk update && apk upgrade && \
-    apk --no-cache add \
-    apache2 \
-    apache2-utils \
-    apache2-proxy \
-    php \
-    php-apache2 \   
-    composer \
-    curl \
-    dos2unix \
-    ${BUILD_HTTP_APK_REQ}
+    apk --no-cache add apache2 apache2-utils apache2-proxy php php-apache2 curl dos2unix ${BUILD_HTTP_APK_REQ} && \
+    echo "APP Installed PHP version: $(php -v | head -n 1)" && \
+    echo "APP Installed Apache version: $(httpd -v | head -n 1)"
 
 # Detectar binario real de PHP y crear symlink seguro
 RUN PHP_BIN="$(ls -1 /usr/bin/php* | grep -E 'php[0-9]+' | head -n 1)" && \
