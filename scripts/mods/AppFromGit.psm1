@@ -19,7 +19,8 @@ function Add-AppFromGit {
     try {
         Write-Host "Adding submodule: $SubmoduleName"
         Write-Host "From: $GitHubUrl"
-        Write-Host "To: $DestinationPath"
+        $absoluteDestination = [System.IO.Path]::GetFullPath($DestinationPath)
+        Write-Host "To (absolute): $DestinationPath --> $absoluteDestination"
     
         git submodule add $GitHubUrl $DestinationPath
     
