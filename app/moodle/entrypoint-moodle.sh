@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-# Crear archivo de log y redirigir toda la salida del script
-LOG_FILE="/var/log/${APP_NAME}.log"
-mkdir -p /var/log
-exec > >(tee -a "$LOG_FILE") 2>&1
-
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ===== APP ${APP_NAME} DOCKER ENVIRONMENT VARIABLES DEBUG ====="
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting Moodle entrypoint script..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
