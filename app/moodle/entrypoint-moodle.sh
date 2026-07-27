@@ -6,7 +6,8 @@ LOG_FILE="/var/log/${APP_NAME}.log"
 mkdir -p /var/log
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting WordPress entrypoint script..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] ===== APP ${APP_NAME} DOCKER ENVIRONMENT VARIABLES DEBUG ====="
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting Moodle entrypoint script..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ===== DOCKER ENVIRONMENT VARIABLES DEBUG ====="
