@@ -1,13 +1,16 @@
 #!/bin/bash
 set -e
 
+# Crear archivo de log y redirigir toda la salida del script
+LOG_FILE="/var/log/${APP_NAME}.log"
+mkdir -p /var/log
+exec > >(tee -a "$LOG_FILE") 2>&1
+
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting WordPress entrypoint script..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: Script PID: $$"
-#
-# Debug: Print environment variables
+
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ===== DOCKER ENVIRONMENT VARIABLES DEBUG ====="
 
-# Variables to check (from provided config)
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] IMAGE_NAME=${IMAGE_NAME:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] CONTAINER_NAME=${CONTAINER_NAME:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DOCKERFILE_PATH=${DOCKERFILE_PATH:-NOT SET}"
@@ -21,7 +24,6 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_INFO_PATH=${SERVER_INFO_PATH:-NOT SE
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ALIAS_INFO_PATH=${ALIAS_INFO_PATH:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_LOG_PATH=${LOCAL_LOG_PATH:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_LOG_PATH=${SERVER_LOG_PATH:-NOT SET}"
-#echo "[$(date '+%Y-%m-%d %H:%M:%S')] IP=${SERVER_IP:-NOT SET}"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_NAME=${DB_NAME:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_USER=${DB_USER:-NOT SET}"
