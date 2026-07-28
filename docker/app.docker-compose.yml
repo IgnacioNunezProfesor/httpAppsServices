@@ -9,7 +9,7 @@ services:
     ports:
       - "${DB_LOCAL_PORT}:${DB_SERVER_PORT}"
     networks:
-      - ${NETWORK_NAME}
+      - MyNet
     environment:
       SERVER_ID: ${DB_SERVER_ID}
       SERVER_PORT: ${DB_SERVER_PORT}
@@ -43,7 +43,7 @@ services:
     ports:
       - "${HTTP_LOCAL_PORT}:${HTTP_SERVER_PORT}"
     networks:
-      - ${NETWORK_NAME}
+      - MyNet
     environment:
       IMAGE_NAME: ${HTTP_IMAGE_NAME}
       CONTAINER_NAME: ${HTTP_CONTAINER_NAME}
@@ -59,22 +59,17 @@ services:
       SERVER_LOG_PATH: ${HTTP_SERVER_LOG_PATH}
       IP: ${HTTP_IP}
       NETWORK_NAME: ${NETWORK_NAME}
-
       DB_HOST: ${DB_CONTAINER_NAME} 
       DB_PORT: ${DB_SERVER_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
-
       APP_NAME: ${APP_NAME}
       APP_GITHUB_URL: ${APP_GITHUB_URL}
       APP_LOCAL_PATH: ${APP_LOCAL_PATH}
       APP_COMPOSE_PATH: ${APP_COMPOSE_PATH}
-
       APP_ENTRYPOINT_LOCAL_PATH: ${APP_ENTRYPOINT_LOCAL_PATH}
       APP_ENTRYPOINT_SERVER_PATH: ${APP_ENTRYPOINT_SERVER_PATH}
-
-
       APP_ADMIN_USER: ${APP_ADMIN_USER}
       APP_ADMIN_PASS: ${APP_ADMIN_PASS}
       APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL}
@@ -92,7 +87,7 @@ services:
       retries: 3
       start_period: 40s
 networks:
-  ${NETWORK_NAME}:
+  MyNet:
     name: ${NETWORK_NAME}
     driver: ${NETWORK_DRIVER}
     ipam:
