@@ -15,13 +15,9 @@ COPY ./docker/phpapache/php/conf.d/*.ini /tmp/conf.d/
 # Detectar carpeta real de configuración de PHP
 RUN PHP_INI_DIR="$(php --ini | grep 'Configuration File' | awk '{print $NF}')" && \
     echo "PHP config dir detected: $PHP_INI_DIR" && \
-    if [ -n "$PHP_INI_DIR" ] && [ -d "$PHP_INI_DIR" ]; then \
-        cp /tmp/php.ini "$PHP_INI_DIR/php.ini" && \
-        cp /tmp/conf.d/*.ini "$PHP_INI_DIR/conf.d/"; \
-    else \
-        echo "PHP config dir not found, skipping configuration copy."; \
-    fi
-
+    echo "Copying PHP configuration files to $PHP_INI_DIR" && \
+    cp -f /tmp/php.ini "$PHP_INI_DIR/php.ini" && \
+    cp -f /tmp/conf.d/*.ini "$PHP_INI_DIR/conf.d/";   
 # Copy and prepare entrypoint script
 COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh
 RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh
