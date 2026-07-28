@@ -142,9 +142,9 @@ try {
     # Wait for Container Health
     # ============================================================================
 Write-Host "Waiting for container health status..."
-$maxWaitSeconds = 160
+$maxWaitSeconds = 16000
 $elapsed = 0
-$sleepInterval = 10
+$sleepInterval = 5
 $isHealthy = $false
 
 while ($elapsed -lt $maxWaitSeconds) {
