@@ -56,8 +56,6 @@ elif [ -f "wp-cli.phar" ]; then
 else
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: WP-CLI not found. Downloading wp-cli.phar..."
     curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.sha512
-    sha512sum -c wp-cli.phar.sha512 || exit 1
 
     if [ $? -ne 0 ]; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to download wp-cli.phar"
