@@ -61,7 +61,11 @@ $requiredVars = @(
     'DB_NAME',
     'DB_USER',
     'DB_PASS',
-    'NETWORK_NAME'
+    'NETWORK_NAME',
+    'NETWORK_ALIAS',
+    'NETWORK_DRIVER',
+    'NETWORK_SUBNET',
+    'NETWORK_SUBNET_GATEWAY'
 )
 
 if (-not (Test-EnvVars -envVars $envVars -requiredVars $requiredVars)) {
