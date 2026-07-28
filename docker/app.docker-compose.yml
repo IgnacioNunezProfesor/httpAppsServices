@@ -85,7 +85,7 @@ services:
         "CMD", 
         "curl", 
         "-f", 
-        "http://${HTTP_NAME}/server-status"
+        "http://${HTTP_NAME}:${HTTP_SERVER_PORT}/server-status"
       ]
       interval: 30s
       timeout: 10s
