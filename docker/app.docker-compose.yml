@@ -92,7 +92,7 @@ services:
       retries: 3
       start_period: 40s
 networks:
-  NETWORK_ALIAS:
+  ${NETWORK_ALIAS}:
     name: ${NETWORK_NAME}
     driver: ${NETWORK_DRIVER}
     ipam:
