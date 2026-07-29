@@ -73,58 +73,6 @@ done
 log "All required environment variables are present."
 
 # -----------------------------------------------------------------------------
-# 2. VERIFY APACHE IS RUNNING (ALPINE)
-# -----------------------------------------------------------------------------
-log "Checking Apache status..."
-
-if ! pgrep -x httpd >/dev/null 2>&1; then
-    log "Apache is not running. Starting Apache..."
-    httpd
-    sleep 2
-fi
-
-if ! pgrep -x httpd >/dev/null 2>&1; then
-    log "ERROR: Apache failed to start"
-    exit 1
-fi
-
-log "Apache is running."
-
-# -----------------------------------------------------------------------------
-# 3. PREPARE MOODLE DIRECTORIES
-# -----------------------------------------------------------------------------
-log "Preparing Moodle directories..."
-
-mkdir -p "$SERVER_ROOT_PATH"
-mkdir -p "$SERVER_LOG_PATH"
-mkdir -p "$SERVER_ROOT_PATH/moodledata"
-
-chmod -R 0777 "$SERVER_ROOT_PATH/moodledata"
-
-log "Directories ready."
-
-# -----------------------------------------------------------------------------
-# 4. WAIT FOR DATABASE
-# -----------------------------------------------------------------------------
-log "Waiting for database at $DB_HOST..."
-
-max_wait=60
-elapsed=0
-
-while ! mysqladmin ping -h"$DB_HOST" --silent; do
-    sleep 2
-    elapsed=$((elapsed+2))
-    log "Database not ready yet... ($elapsed/$max_wait)"
-
-    if [ "$elapsed" -ge "$max_wait" ]; then
-        log "ERROR: Database did not become ready"
-        exit 1
-    fi
-done
-
-log "Database is ready."
-
-# -----------------------------------------------------------------------------
 # 5. CREATE MOODLE CONFIG.PHP (UNATTENDED)
 # -----------------------------------------------------------------------------
 config_file="$SERVER_ROOT_PATH/config.php"
@@ -198,4 +146,4 @@ log "Permissions applied."
 # 8. START APACHE IN FOREGROUND
 # -----------------------------------------------------------------------------
 log "Starting Apache in foreground..."
-exec httpd -DFOREGROUND
+exec httpd -D FOREGROUND
