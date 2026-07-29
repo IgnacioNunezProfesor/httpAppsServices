@@ -38,4 +38,164 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ADMIN_PASS=${APP_ADMIN_PASS:-NOT SET (S
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ADMIN_EMAIL=${APP_ADMIN_EMAIL:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ==========================================="
 
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
 
+log "===== MOODLE UNATTENDED INSTALLER ====="
+log "Starting entrypoint for ${APP_NAME}"
+
+# -----------------------------------------------------------------------------
+# 1. VALIDATE REQUIRED VARIABLES
+# -----------------------------------------------------------------------------
+required_vars="
+DB_NAME
+DB_USER
+DB_PASS
+DB_HOST
+SERVER_ROOT_PATH
+SERVER_LOG_PATH
+APP_ADMIN_USER
+APP_ADMIN_PASS
+APP_ADMIN_EMAIL
+SERVER_NAME
+SERVER_PORT
+"
+
+for var in $required_vars; do
+    eval "value=\${$var}"
+    if [ -z "$value" ]; then
+        log "ERROR: Required variable $var is not set"
+        exit 1
+    fi
+done
+
+log "All required environment variables are present."
+
+# -----------------------------------------------------------------------------
+# 2. VERIFY APACHE IS RUNNING (ALPINE)
+# -----------------------------------------------------------------------------
+log "Checking Apache status..."
+
+if ! pgrep -x httpd >/dev/null 2>&1; then
+    log "Apache is not running. Starting Apache..."
+    httpd
+    sleep 2
+fi
+
+if ! pgrep -x httpd >/dev/null 2>&1; then
+    log "ERROR: Apache failed to start"
+    exit 1
+fi
+
+log "Apache is running."
+
+# -----------------------------------------------------------------------------
+# 3. PREPARE MOODLE DIRECTORIES
+# -----------------------------------------------------------------------------
+log "Preparing Moodle directories..."
+
+mkdir -p "$SERVER_ROOT_PATH"
+mkdir -p "$SERVER_LOG_PATH"
+mkdir -p "$SERVER_ROOT_PATH/moodledata"
+
+chmod -R 0777 "$SERVER_ROOT_PATH/moodledata"
+
+log "Directories ready."
+
+# -----------------------------------------------------------------------------
+# 4. WAIT FOR DATABASE
+# -----------------------------------------------------------------------------
+log "Waiting for database at $DB_HOST..."
+
+max_wait=60
+elapsed=0
+
+while ! mysqladmin ping -h"$DB_HOST" --silent; do
+    sleep 2
+    elapsed=$((elapsed+2))
+    log "Database not ready yet... ($elapsed/$max_wait)"
+
+    if [ "$elapsed" -ge "$max_wait" ]; then
+        log "ERROR: Database did not become ready"
+        exit 1
+    fi
+done
+
+log "Database is ready."
+
+# -----------------------------------------------------------------------------
+# 5. CREATE MOODLE CONFIG.PHP (UNATTENDED)
+# -----------------------------------------------------------------------------
+config_file="$SERVER_ROOT_PATH/config.php"
+
+if [ ! -f "$config_file" ]; then
+    log "Generating Moodle config.php..."
+
+    cat > "$config_file" <<EOF
+<?php
+unset(\$CFG);
+global \$CFG;
+\$CFG = new stdClass();
+
+\$CFG->dbtype    = 'mariadb';
+\$CFG->dblibrary = 'native';
+\$CFG->dbhost    = '${DB_HOST}';
+\$CFG->dbname    = '${DB_NAME}';
+\$CFG->dbuser    = '${DB_USER}';
+\$CFG->dbpass    = '${DB_PASS}';
+\$CFG->prefix    = 'mdl_';
+
+\$CFG->wwwroot   = 'http://${SERVER_NAME}:${SERVER_PORT}';
+\$CFG->dataroot  = '${SERVER_ROOT_PATH}/moodledata';
+
+\$CFG->admin     = '${APP_ADMIN_USER}';
+
+\$CFG->directorypermissions = 0777;
+
+require_once(__DIR__ . '/lib/setup.php');
+EOF
+
+    log "config.php created."
+else
+    log "config.php already exists. Skipping."
+fi
+
+# -----------------------------------------------------------------------------
+# 6. INSTALL MOODLE (CLI)
+# -----------------------------------------------------------------------------
+log "Running Moodle CLI installer..."
+
+php "$SERVER_ROOT_PATH/admin/cli/install.php" \
+    --non-interactive \
+    --agree-license \
+    --wwwroot="http://${SERVER_NAME}:${SERVER_PORT}" \
+    --dataroot="${SERVER_ROOT_PATH}/moodledata" \
+    --dbtype=mariadb \
+    --dbhost="${DB_HOST}" \
+    --dbname="${DB_NAME}" \
+    --dbuser="${DB_USER}" \
+    --dbpass="${DB_PASS}" \
+    --fullname="${APP_NAME}" \
+    --shortname="${APP_NAME}" \
+    --adminuser="${APP_ADMIN_USER}" \
+    --adminpass="${APP_ADMIN_PASS}" \
+    --adminemail="${APP_ADMIN_EMAIL}"
+
+log "Moodle installation completed."
+
+# -----------------------------------------------------------------------------
+# 7. FINAL PERMISSIONS
+# -----------------------------------------------------------------------------
+log "Applying final permissions..."
+
+chown -R apache:apache "$SERVER_ROOT_PATH"
+chown -R apache:apache "$SERVER_ROOT_PATH/moodledata"
+
+log "Permissions applied."
+
+# -----------------------------------------------------------------------------
+# 8. START APACHE IN FOREGROUND
+# -----------------------------------------------------------------------------
+log "Starting Apache in foreground..."
+exec httpd -DFOREGROUND
