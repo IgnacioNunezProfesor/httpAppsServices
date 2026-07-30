@@ -20,6 +20,8 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_INFO_PATH=${SERVER_INFO_PATH:-NOT SE
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ALIAS_INFO_PATH=${ALIAS_INFO_PATH:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_LOG_PATH=${LOCAL_LOG_PATH:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_LOG_PATH=${SERVER_LOG_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] SERVER_DATA_PATH=${SERVER_DATA_PATH:-NOT SET}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] LOCAL_DATA_PATH=${LOCAL_DATA_PATH:-NOT SET}"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_NAME=${DB_NAME:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DB_USER=${DB_USER:-NOT SET}"
@@ -38,6 +40,9 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ADMIN_PASS=${APP_ADMIN_PASS:-NOT SET (S
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP_ADMIN_EMAIL=${APP_ADMIN_EMAIL:-NOT SET}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ==========================================="
 
+#!/bin/bash
+set -e
+
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
@@ -46,7 +51,7 @@ log "===== MOODLE UNATTENDED INSTALLER ====="
 log "Starting entrypoint for ${APP_NAME}"
 
 # -----------------------------------------------------------------------------
-# 1. VALIDATE REQUIRED VARIABLES
+# 1. VALIDAR VARIABLES NECESARIAS
 # -----------------------------------------------------------------------------
 required_vars="
 DB_NAME
@@ -54,12 +59,12 @@ DB_USER
 DB_PASS
 DB_HOST
 SERVER_ROOT_PATH
-SERVER_LOG_PATH
+HTTP_SERVER_DATA_PATH
 APP_ADMIN_USER
 APP_ADMIN_PASS
 APP_ADMIN_EMAIL
 SERVER_NAME
-SERVER_PORT
+HTTP_SERVER_PORT
 "
 
 for var in $required_vars; do
@@ -73,9 +78,17 @@ done
 log "All required environment variables are present."
 
 # -----------------------------------------------------------------------------
-# 5. CREATE MOODLE CONFIG.PHP (UNATTENDED)
+# 2. CREAR DIRECTORIO moodledata
 # -----------------------------------------------------------------------------
-config_file="$SERVER_ROOT_PATH/config.php"
+if [ ! -d "$HTTP_SERVER_DATA_PATH" ]; then
+    log "Creating Moodle data directory at ${HTTP_SERVER_DATA_PATH}..."
+    mkdir -p "$HTTP_SERVER_DATA_PATH"
+fi
+
+# -----------------------------------------------------------------------------
+# 3. CREAR config.php SI NO EXISTE
+# -----------------------------------------------------------------------------
+config_file="${SERVER_ROOT_PATH}/config.php"
 
 if [ ! -f "$config_file" ]; then
     log "Generating Moodle config.php..."
@@ -94,11 +107,10 @@ global \$CFG;
 \$CFG->dbpass    = '${DB_PASS}';
 \$CFG->prefix    = 'mdl_';
 
-\$CFG->wwwroot   = 'http://${SERVER_NAME}:${SERVER_PORT}';
-\$CFG->dataroot  = '${SERVER_ROOT_PATH}/moodledata';
+\$CFG->wwwroot   = 'http://${SERVER_NAME}:${HTTP_SERVER_PORT}';
+\$CFG->dataroot  = '${HTTP_SERVER_DATA_PATH}';
 
 \$CFG->admin     = '${APP_ADMIN_USER}';
-
 \$CFG->directorypermissions = 0777;
 
 require_once(__DIR__ . '/lib/setup.php');
@@ -110,15 +122,15 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 6. INSTALL MOODLE (CLI)
+# 4. INSTALAR MOODLE VIA CLI
 # -----------------------------------------------------------------------------
 log "Running Moodle CLI installer..."
 
-php "$SERVER_ROOT_PATH/admin/cli/install.php" \
+php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --non-interactive \
     --agree-license \
-    --wwwroot="http://${SERVER_NAME}:${SERVER_PORT}" \
-    --dataroot="${SERVER_ROOT_PATH}/moodledata" \
+    --wwwroot="http://${SERVER_NAME}:${HTTP_SERVER_PORT}" \
+    --dataroot="${HTTP_SERVER_DATA_PATH}" \
     --dbtype=mariadb \
     --dbhost="${DB_HOST}" \
     --dbname="${DB_NAME}" \
@@ -133,17 +145,17 @@ php "$SERVER_ROOT_PATH/admin/cli/install.php" \
 log "Moodle installation completed."
 
 # -----------------------------------------------------------------------------
-# 7. FINAL PERMISSIONS
+# 5. PERMISOS FINALES
 # -----------------------------------------------------------------------------
 log "Applying final permissions..."
 
-chown -R apache:apache "$SERVER_ROOT_PATH"
-chown -R apache:apache "$SERVER_ROOT_PATH/moodledata"
+chown -R apache:apache "${SERVER_ROOT_PATH}"
+chown -R apache:apache "${HTTP_SERVER_DATA_PATH}"
 
 log "Permissions applied."
 
 # -----------------------------------------------------------------------------
-# 8. START APACHE IN FOREGROUND
+# 6. INICIAR APACHE EN FOREGROUND
 # -----------------------------------------------------------------------------
 log "Starting Apache in foreground..."
 exec httpd -D FOREGROUND
