@@ -59,12 +59,12 @@ DB_USER
 DB_PASS
 DB_HOST
 SERVER_ROOT_PATH
-HTTP_SERVER_DATA_PATH
+SERVER_DATA_PATH
 APP_ADMIN_USER
 APP_ADMIN_PASS
 APP_ADMIN_EMAIL
 SERVER_NAME
-HTTP_SERVER_PORT
+SERVER_PORT
 "
 
 for var in $required_vars; do
@@ -80,9 +80,9 @@ log "All required environment variables are present."
 # -----------------------------------------------------------------------------
 # 2. CREAR DIRECTORIO moodledata
 # -----------------------------------------------------------------------------
-if [ ! -d "$HTTP_SERVER_DATA_PATH" ]; then
-    log "Creating Moodle data directory at ${HTTP_SERVER_DATA_PATH}..."
-    mkdir -p "$HTTP_SERVER_DATA_PATH"
+if [ ! -d "$SERVER_DATA_PATH" ]; then
+    log "Creating Moodle data directory at ${SERVER_DATA_PATH}..."
+    mkdir -p "$SERVER_DATA_PATH"
 fi
 
 # -----------------------------------------------------------------------------
@@ -107,8 +107,8 @@ global \$CFG;
 \$CFG->dbpass    = '${DB_PASS}';
 \$CFG->prefix    = 'mdl_';
 
-\$CFG->wwwroot   = 'http://${SERVER_NAME}:${HTTP_SERVER_PORT}';
-\$CFG->dataroot  = '${HTTP_SERVER_DATA_PATH}';
+\$CFG->wwwroot   = 'http://${SERVER_NAME}:${SERVER_PORT}';
+\$CFG->dataroot  = '${SERVER_DATA_PATH}';
 
 \$CFG->admin     = '${APP_ADMIN_USER}';
 \$CFG->directorypermissions = 0777;
@@ -150,7 +150,7 @@ log "Moodle installation completed."
 log "Applying final permissions..."
 
 chown -R apache:apache "${SERVER_ROOT_PATH}"
-chown -R apache:apache "${HTTP_SERVER_DATA_PATH}"
+chown -R apache:apache "${SERVER_DATA_PATH}"
 
 log "Permissions applied."
 
