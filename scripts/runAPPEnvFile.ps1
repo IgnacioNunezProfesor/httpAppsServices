@@ -61,7 +61,11 @@ $requiredVars = @(
     'DB_NAME',
     'DB_USER',
     'DB_PASS',
-    'NETWORK_NAME'
+    'NETWORK_NAME',
+    'NETWORK_ALIAS',
+    'NETWORK_DRIVER',
+    'NETWORK_SUBNET',
+    'NETWORK_SUBNET_GATEWAY'
 )
 
 if (-not (Test-EnvVars -envVars $envVars -requiredVars $requiredVars)) {
@@ -96,6 +100,22 @@ try {
     # ============================================================================
     Write-Host "Starting Docker containers..." -ForegroundColor Green
 
+# ============================================================================
+# Validate Docker Compose File
+# ============================================================================
+Write-Host "Validating docker-compose file: $($envVars.APP_COMPOSE_PATH)" -ForegroundColor Yellow
+
+$composeCheck = Invoke-DockerCommand `
+    -Command "compose -f `"$($envVars.APP_COMPOSE_PATH)`" --env-file `"$EnvFile`" config" `
+    -ErrorMessage "Docker Compose validation failed"
+
+if (-not $composeCheck) {
+    Write-Error "Docker Compose validation returned empty output. Please check your compose file."
+    Clear-Containers -reason "Invalid docker-compose.yml"
+    exit 1
+}
+
+Write-Host "Docker Compose file validated successfully." -ForegroundColor Green
 
 
     Invoke-DockerCommand -Command "compose -f `"$($envVars.APP_COMPOSE_PATH)`" --env-file `"$EnvFile`" up -d --build" `
@@ -134,60 +154,7 @@ try {
     $script:containerId = $containerIds[0]
     Write-Host "Container detected: $containerName ($script:containerId)"
 
-    # ============================================================================
-    # Wait for Container Health
-    # ============================================================================
-   Write-Host "Waiting for container health status..."
-$maxWaitSeconds = 160
-$elapsed = 0
-$sleepInterval = 2
-$isHealthy = $false
-
-while ($elapsed -lt $maxWaitSeconds) {
-    try {
-        # Capturamos la salida y limpiamos espacios o saltos de línea con .Trim()
-        $health = (docker inspect --format '{{.State.Health.Status}}' $script:containerId 2>$null).Trim()
-        write-Host "Health status: $health (elapsed: ${elapsed}s of ${maxWaitSeconds}s)"
-        
-        # Si la respuesta está vacía, significa que no hay healthcheck configurado
-        if ([string]::IsNullOrEmpty($health)) {
-            $state = (docker inspect --format '{{.State.Status}}' $script:containerId 2>$null).Trim()
-            if ($state -eq 'running') { 
-                $isHealthy = $true
-                break 
-            }
-        } else {
-            # Ahora la comparación es segura gracias al .Trim()
-            if ($health -eq 'healthy') { 
-                $isHealthy = $true
-                break 
-            }
-            if ($health -eq 'unhealthy') {
-                Write-Error "Container reported unhealthy."
-                $logs = Get-ContainerLogs -ContainerId $script:containerId
-                Write-Error "Container logs:`n$logs"
-                Clear-Containers -reason "Container unhealthy"
-                exit 1
-            }
-            # Si dice 'starting', simplemente dejamos que continúe el bucle
-        }
-    } catch {
-        Write-Host "Retrying health check due to an unexpected error..."
-    }
-    
-    Start-Sleep -Seconds $sleepInterval
-    $elapsed += $sleepInterval
-}
-
-if (-not $isHealthy) {
-    Write-Error "Timed out waiting for container to be ready (${maxWaitSeconds}s)"
-    $logs = Get-ContainerLogs -ContainerId $script:containerId
-    Write-Error "Container logs:`n$logs"
-    Clear-Containers -reason "Container health check timeout"
-    exit 1
-}
-
-Write-Host "Container is ready."
+ 
 
     # ============================================================================
     # Copy and Execute Entrypoint

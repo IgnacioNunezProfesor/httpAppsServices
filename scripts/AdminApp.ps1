@@ -132,6 +132,25 @@ function Clear-All {
     Write-Host "Eliminando todas las imágenes..." -ForegroundColor Yellow
     docker rmi $(docker images -q) -f 2>$null
 
+    # Eliminar redes Docker personales (no eliminar redes por defecto: bridge, host, none)
+    Write-Host "Eliminando redes Docker personales..." -ForegroundColor Yellow
+    try {
+        $defaultNets = @('bridge','host','none')
+        $allNets = docker network ls --format '{{.Name}}' 2>$null
+        if ($allNets) {
+            foreach ($net in $allNets) {
+                if ($defaultNets -notcontains $net) {
+                    docker network rm $net 2>$null
+                    Write-Host "Red eliminada: $net"
+                }
+            }
+        } else {
+            Write-Host "No se encontraron redes Docker adicionales."
+        }
+    } catch {
+        Write-Host "Error al eliminar redes Docker: $_" -ForegroundColor Red
+    }
+
     Write-Host "Eliminando carpetas locales..." -ForegroundColor Yellow
     $folders = @(".\data", ".\logs")
     foreach ($folder in $folders) {
@@ -142,7 +161,8 @@ function Clear-All {
             Write-Host "Carpeta no encontrada: $folder"
         }
     }
-
+    
+  
     Write-Host "Eliminando todas las aplicaciones..." -ForegroundColor Yellow
     Remove-AllApps
 

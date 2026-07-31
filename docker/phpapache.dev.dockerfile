@@ -3,28 +3,7 @@ FROM alpine:latest
 ARG BUILD_HTTP_APK_REQ=""
 
 # Update and install Apache, PHP 8.4 and extensions
-RUN apk update && apk upgrade && \
-    apk --no-cache add \
-    apache2 \
-    apache2-utils \
-    apache2-proxy \
-    php \
-    php-apache2 \   
-    composer \
-    curl \
-    dos2unix \
-    ${BUILD_HTTP_APK_REQ}
-
-# Detectar binario real de PHP y crear symlink seguro
-RUN PHP_BIN="$(ls -1 /usr/bin/php* | grep -E 'php[0-9]+' | head -n 1)" && \
-    if [ -n "$PHP_BIN" ]; then \
-        echo "Detected PHP binary: $PHP_BIN"; \
-        rm -f /usr/bin/php; \
-        ln -s "$PHP_BIN" /usr/bin/php; \
-    else \
-        echo "ERROR: No PHP binary found"; \
-        exit 1; \
-    fi
+RUN apk update && apk upgrade && apk --no-cache add apache2 apache2-utils apache2-proxy php php-apache2 curl dos2unix ${BUILD_HTTP_APK_REQ}
 
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
 COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
@@ -33,19 +12,14 @@ COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
 COPY ./docker/phpapache/php/php.ini /tmp/php.ini
 COPY ./docker/phpapache/php/conf.d/*.ini /tmp/conf.d/
 
-# Detect PHP version and move configuration files to correct directory
-RUN PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;')" && \
-    echo "Detected PHP version: $PHP_VER" && \
-    mv /tmp/php.ini "/etc/php${PHP_VER}/php.ini" && \
-    mv /tmp/conf.d/*.ini "/etc/php${PHP_VER}/conf.d/"
-
-
-
-
-# Enable Apache modules required for PHP
-RUN sed -i 's|^#\(LoadModule.*mod_rewrite\)|\1|' /etc/apache2/httpd.conf && \
-    sed -i 's|^#\(LoadModule.*mod_proxy\)|\1|' /etc/apache2/httpd.conf && \
-    sed -i 's|^#\(LoadModule.*mod_proxy_http\)|\1|' /etc/apache2/httpd.conf
+# Detectar carpeta real de configuración de PHP
+RUN echo "Detecting PHP configuration directory: $(php --ini | grep 'Configuration File' | awk '{print $NF}')" && \
+    PHP_INI_DIR="$(php --ini | grep 'Configuration File' | awk '{print $NF}')" && \
+    echo "PHP config dir detected: $PHP_INI_DIR" && \
+    mkdir -p "$PHP_INI_DIR/conf.d" && \
+    echo "Copying PHP configuration files to $PHP_INI_DIR" && \
+    mv -f /tmp/php.ini "$PHP_INI_DIR/php.ini" && \
+    mv -f /tmp/conf.d/*.ini "$PHP_INI_DIR/conf.d/"
 
 # Copy and prepare entrypoint script
 COPY ./docker/phpapache/entrypoint.sh /entrypoint.sh

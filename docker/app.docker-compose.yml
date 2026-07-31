@@ -9,7 +9,7 @@ services:
     ports:
       - "${DB_LOCAL_PORT}:${DB_SERVER_PORT}"
     networks:
-      - MyLAN
+      - MyNet
     environment:
       SERVER_ID: ${DB_SERVER_ID}
       SERVER_PORT: ${DB_SERVER_PORT}
@@ -43,13 +43,14 @@ services:
     ports:
       - "${HTTP_LOCAL_PORT}:${HTTP_SERVER_PORT}"
     networks:
-      - MyLAN
+      - MyNet
     environment:
       IMAGE_NAME: ${HTTP_IMAGE_NAME}
       CONTAINER_NAME: ${HTTP_CONTAINER_NAME}
       DOCKERFILE_PATH: ${HTTP_DOCKERFILE_PATH}
       SERVER_NAME: ${HTTP_NAME}
       SERVER_PORT: ${HTTP_SERVER_PORT}
+      LOCAL_PORT: ${HTTP_LOCAL_PORT}
       LOCAL_ROOT_PATH: ${HTTP_LOCAL_ROOT_PATH}
       SERVER_ROOT_PATH: ${HTTP_SERVER_ROOT_PATH}
       LOCAL_INFO_PATH: ${HTTP_LOCAL_INFO_PATH}
@@ -57,24 +58,20 @@ services:
       ALIAS_INFO_PATH: ${HTTP_ALIAS_INFO_PATH}
       LOCAL_LOG_PATH: ${HTTP_LOCAL_LOG_PATH}
       SERVER_LOG_PATH: ${HTTP_SERVER_LOG_PATH}
+      SERVER_DATA_PATH: ${HTTP_SERVER_DATA_PATH}
       IP: ${HTTP_IP}
       NETWORK_NAME: ${NETWORK_NAME}
-
       DB_HOST: ${DB_CONTAINER_NAME} 
       DB_PORT: ${DB_SERVER_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
-
       APP_NAME: ${APP_NAME}
       APP_GITHUB_URL: ${APP_GITHUB_URL}
       APP_LOCAL_PATH: ${APP_LOCAL_PATH}
       APP_COMPOSE_PATH: ${APP_COMPOSE_PATH}
-
       APP_ENTRYPOINT_LOCAL_PATH: ${APP_ENTRYPOINT_LOCAL_PATH}
       APP_ENTRYPOINT_SERVER_PATH: ${APP_ENTRYPOINT_SERVER_PATH}
-
-
       APP_ADMIN_USER: ${APP_ADMIN_USER}
       APP_ADMIN_PASS: ${APP_ADMIN_PASS}
       APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL}
@@ -82,17 +79,23 @@ services:
       - ${HTTP_LOCAL_ROOT_PATH}:${HTTP_SERVER_ROOT_PATH}
       - ${HTTP_LOCAL_INFO_PATH}:${HTTP_SERVER_INFO_PATH}
       - ${HTTP_LOCAL_LOG_PATH}:${HTTP_SERVER_LOG_PATH}
+      - ${HTTP_LOCAL_DATA_PATH}:${HTTP_SERVER_DATA_PATH}
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://${HTTP_CONTAINER_NAME}:${HTTP_SERVER_PORT}/server-status"]
+      test: [
+        "CMD", 
+        "curl", 
+        "-f", 
+        "http://${HTTP_NAME}:${HTTP_SERVER_PORT}/server-status"
+      ]
       interval: 30s
-      timeout: 100s
+      timeout: 10s
       retries: 3
       start_period: 40s
 networks:
-  MyLAN:
+  MyNet:
     name: ${NETWORK_NAME}
     driver: ${NETWORK_DRIVER}
     ipam:

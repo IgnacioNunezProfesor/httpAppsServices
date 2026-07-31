@@ -55,7 +55,14 @@ elif [ -f "wp-cli.phar" ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: WP-CLI detected locally as 'php wp-cli.phar'"
 else
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: WP-CLI not found. Downloading wp-cli.phar..."
-    curl -s -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+    if [ $? -ne 0 ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Failed to download wp-cli.phar"
+        exit 1
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: wp-cli.phar downloaded successfully"
+    fi
     chmod +x wp-cli.phar
     WP_CMD="php wp-cli.phar"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: WP-CLI downloaded and ready"
@@ -105,4 +112,5 @@ fi
 #
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: WordPress ready. Starting Apache..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] DEBUG: About to execute: $@"
+
 exec "$@"

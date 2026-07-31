@@ -42,6 +42,8 @@ function Invoke-DockerCommand {
     return $output
 }
 
+
+
 function Invoke-DockerExecCommand {
     <#
     .SYNOPSIS
@@ -87,6 +89,71 @@ function Invoke-DockerExecCommand {
     
     return $output
 }
+
+function wait-to-Healthy{
+param(
+    [integer]$containerId,
+    [string]$containerName,
+    [integer]$maxWaitSeconds = 16000,
+    [integer]$sleepInterval = 5,
+    [integer]$elapsed = 0,
+    [boolean]$isHealthy = $false
+)
+
+
+       # ============================================================================
+    # Wait for Container Health
+    # ============================================================================
+Write-Host "Waiting for container health status..."
+
+while ($elapsed -lt $maxWaitSeconds) {
+    try {
+        # Capturamos la salida y limpiamos espacios o saltos de línea con .Trim()
+        $health = (docker inspect --format '{{.State.Health.Status}}' $containerId 2>$null).Trim()
+        $getCheck = (docker inspect --format '{{json .Config.Healthcheck.Test}}' $containerId 2>$null).Trim()
+        write-Host "Health: $getCheck status: $health (elapsed: ${elapsed}s of ${maxWaitSeconds}s)"
+        
+        # Si la respuesta está vacía, significa que no hay healthcheck configurado
+        if ([string]::IsNullOrEmpty($health)) {
+            $state = (docker inspect --format '{{.State.Status}}' $containerId 2>$null).Trim()
+            if ($state -eq 'running') { 
+                $isHealthy = $true
+                break 
+            }
+        } else {
+            # Ahora la comparación es segura gracias al .Trim()
+            if ($health -eq 'healthy') { 
+                $isHealthy = $true
+                break 
+            }
+            if ($health -eq 'unhealthy') {
+                Write-Error "Container reported unhealthy."
+                $logs = Get-ContainerLogs -ContainerId $containerId
+                Write-Error "Container logs:`n$logs"
+                Clear-Containers -reason "Container unhealthy"
+                exit 1
+            }
+            # Si dice 'starting', simplemente dejamos que continúe el bucle
+        }
+    } catch {
+        Write-Host "Retrying health check due to an unexpected error..."
+    }
+    
+    Start-Sleep -Seconds $sleepInterval
+    $elapsed += $sleepInterval
+}
+
+if (-not $isHealthy) {
+    Write-Error "Timed out waiting for container to be ready (${maxWaitSeconds}s)"
+    $logs = Get-ContainerLogs -ContainerId $containerId
+    Write-Error "Container logs:`n$logs"
+    Clear-Containers -reason "Container health check timeout"
+    exit 1
+}
+
+Write-Host "Container is ready."
+}
+
 
 function Get-ContainerLogs {
     <#
