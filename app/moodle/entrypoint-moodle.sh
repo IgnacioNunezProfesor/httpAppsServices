@@ -151,7 +151,7 @@ fi
 # Esto evita reescribir config.php o generar bucles en las rutas dirroot/public.
 log "Checking/Installing Moodle database..."
 
-php "${SERVER_ROOT_PATH}/public/admin/cli/install_database.php" \
+php "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
     --non-interactive \
     --agree-license \
     --adminuser="${APP_ADMIN_USER}" \
