@@ -48,29 +48,32 @@ log() {
 }
 
 log "===== MOODLE UNATTENDED INSTALLER ====="
-log "Starting entrypoint for ${APP_NAME}"
+log "Starting entrypoint for ${APP_NAME:-Moodle}"
 
 # -----------------------------------------------------------------------------
-# 1. VALIDAR VARIABLES NECESARIAS
+# 1. VALIDAR VARIABLES DE ENTORNO
 # -----------------------------------------------------------------------------
+# Usamos exactamente las llaves que le pasa el docker-compose.yml
 required_vars="
+DB_HOST
+DB_PORT
 DB_NAME
 DB_USER
 DB_PASS
-DB_HOST
+SERVER_NAME
+SERVER_PORT
+LOCAL_PORT
 SERVER_ROOT_PATH
 SERVER_DATA_PATH
 APP_ADMIN_USER
 APP_ADMIN_PASS
 APP_ADMIN_EMAIL
-SERVER_NAME
-SERVER_PORT
 "
 
 for var in $required_vars; do
     eval "value=\${$var}"
     if [ -z "$value" ]; then
-        log "ERROR: Required variable $var is not set"
+        log "ERROR: Required environment variable '$var' is missing or empty."
         exit 1
     fi
 done
@@ -86,12 +89,24 @@ if [ ! -d "$SERVER_DATA_PATH" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# 3. CREAR config.php SI NO EXISTE
+# 3. GENERAR config.php (SI NO EXISTE)
 # -----------------------------------------------------------------------------
 config_file="${SERVER_ROOT_PATH}/config.php"
 
+if [ -f "$config_file" ]; then
+    log "Existing config.php found. Backing up to config.php.bak..."
+    cp -f "$config_file" "${config_file}.bak"
+fi
+
 if [ ! -f "$config_file" ]; then
     log "Generating Moodle config.php..."
+
+    # Determinar si el puerto debe incluirse en el wwwroot
+    if [ "$SERVER_PORT" = "80" ] || [ "$SERVER_PORT" = "443" ]; then
+        wwwroot_url="http://${SERVER_NAME}"
+    else
+        wwwroot_url="http://${SERVER_NAME}:${SERVER_PORT}"
+    fi
 
     cat > "$config_file" <<EOF
 <?php
@@ -106,56 +121,70 @@ global \$CFG;
 \$CFG->dbuser    = '${DB_USER}';
 \$CFG->dbpass    = '${DB_PASS}';
 \$CFG->prefix    = 'mdl_';
+\$CFG->dboptions = array(
+    'dbpersist'   => 0,
+    'dbport'      => '${DB_PORT}',
+    'dbsocket'    => '',
+    'dbcollation' => 'utf8mb4_unicode_ci',
+);
 
-\$CFG->wwwroot   = 'http://${SERVER_NAME}:${SERVER_PORT}';
+\$CFG->wwwroot   = 'http://${SERVER_NAME}';
+\$CFG->dirroot   = '${SERVER_ROOT_PATH}/public'; # Crucial fix for Moodle 4.4+
 \$CFG->dataroot  = '${SERVER_DATA_PATH}';
 
-\$CFG->admin     = '${APP_ADMIN_USER}';
-\$CFG->directorypermissions = 0777;
+\$CFG->admin     = 'admin';
+\$CFG->directorypermissions = 02777;
+\$CFG->filepermissions      = 0666;
 
-require_once(__DIR__ . '/lib/setup.php');
+require_once(\$CFG->dirroot . '/lib/setup.php');
 EOF
 
-    log "config.php created."
+    log "config.php successfully created."
 else
-    log "config.php already exists. Skipping."
+    log "config.php already exists. Skipping creation."
 fi
 
 # -----------------------------------------------------------------------------
-# 4. INSTALAR MOODLE VIA CLI
+# 4. INSTALACIÓN DESATENDIDA DE LA BASE DE DATOS MOODLE
 # -----------------------------------------------------------------------------
-log "Running Moodle CLI installer..."
+# Usamos install_database.php en lugar de install.php.
+# Esto evita reescribir config.php o generar bucles en las rutas dirroot/public.
+log "Checking/Installing Moodle database..."
 
-php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
+php "${SERVER_ROOT_PATH}/public/admin/cli/install_database.php" \
     --non-interactive \
     --agree-license \
-    --wwwroot="http://${SERVER_NAME}:${HTTP_SERVER_PORT}" \
-    --dataroot="${HTTP_SERVER_DATA_PATH}" \
-    --dbtype=mariadb \
-    --dbhost="${DB_HOST}" \
-    --dbname="${DB_NAME}" \
-    --dbuser="${DB_USER}" \
-    --dbpass="${DB_PASS}" \
-    --fullname="${APP_NAME}" \
-    --shortname="${APP_NAME}" \
     --adminuser="${APP_ADMIN_USER}" \
     --adminpass="${APP_ADMIN_PASS}" \
-    --adminemail="${APP_ADMIN_EMAIL}"
-
-log "Moodle installation completed."
-
-# -----------------------------------------------------------------------------
-# 5. PERMISOS FINALES
-# -----------------------------------------------------------------------------
-log "Applying final permissions..."
-
-chown -R apache:apache "${SERVER_ROOT_PATH}"
-chown -R apache:apache "${SERVER_DATA_PATH}"
-
-log "Permissions applied."
+    --adminemail="${APP_ADMIN_EMAIL}" \
+    --fullname="${APP_NAME}" \
+    --shortname="${APP_NAME}" || log "Database is already installed or populated. Continuing startup..."
 
 # -----------------------------------------------------------------------------
-# 6. INICIAR APACHE EN FOREGROUND
+# 5. APLICAR PERMISOS
 # -----------------------------------------------------------------------------
-log "Starting Apache in foreground..."
-exec httpd -D FOREGROUND
+log "Applying folder permissions..."
+
+# Aseguramos que el usuario que ejecuta Apache (apache o www-data) sea el propietario
+web_user="apache"
+if ! id "$web_user" >/dev/null 2>&1; then
+    web_user="www-data"
+fi
+
+chown -R ${web_user}:${web_user} "${SERVER_ROOT_PATH}"
+chown -R ${web_user}:${web_user} "${SERVER_DATA_PATH}"
+
+log "Permissions successfully applied for user ${web_user}."
+
+# -----------------------------------------------------------------------------
+# 6. ARRANCAR EL SERVIDOR APACHE
+# -----------------------------------------------------------------------------
+log "Starting Apache web server..."
+
+if command -v httpd >/dev/null 2>&1; then
+    exec httpd -D FOREGROUND
+elif command -v apache2-foreground >/dev/null 2>&1; then
+    exec apache2-foreground
+else
+    exec apache2 -D FOREGROUND
+fi
