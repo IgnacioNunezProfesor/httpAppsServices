@@ -129,7 +129,7 @@ global \$CFG;
 );
 
 \$CFG->wwwroot   = 'http://${SERVER_NAME}';
-\$CFG->dirroot   = '${SERVER_ROOT_PATH}/public'; # Crucial fix for Moodle 4.4+
+\$CFG->dirroot   = '${SERVER_ROOT_PATH}'; # Crucial fix for Moodle 4.4+
 \$CFG->dataroot  = '${SERVER_DATA_PATH}';
 
 \$CFG->admin     = 'admin';
@@ -151,7 +151,7 @@ fi
 # Esto evita reescribir config.php o generar bucles en las rutas dirroot/public.
 log "Checking/Installing Moodle database..."
 
-php "${SERVER_ROOT_PATH}/public/admin/cli/install_database.php" \
+php "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
     --non-interactive \
     --agree-license \
     --adminuser="${APP_ADMIN_USER}" \
