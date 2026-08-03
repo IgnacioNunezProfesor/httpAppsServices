@@ -5,17 +5,6 @@ ARG BUILD_HTTP_APK_REQ=""
 # Update and install Apache, PHP 8.4 and extensions
 RUN apk update && apk upgrade && apk --no-cache add apache2 apache2-utils apache2-proxy php php-apache2 curl dos2unix ${BUILD_HTTP_APK_REQ}
 
-RUN apk add --no-cache bash bash-doc bash-completion \
-    build-base autoconf automake git
-
-# Descargar bashdb
-RUN git clone https://github.com/rocky/bashdb.git /tmp/bashdb && \
-    cd /tmp/bashdb && \
-    ./autogen.sh && \
-    ./configure && \
-    make && \
-    make install
-
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
 COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/
 

@@ -164,17 +164,7 @@ Write-Host "Docker Compose file validated successfully." -ForegroundColor Green
     # ============================================================================
     Write-Host "Copying entrypoint to container..."
     Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)`"" `
-        -ErrorMessage "Failed to copy entrypoint to container"
-
-    Write-Host "Creating debug file directory in container..."
-    Invoke-DockerExecCommand -ContainerId $script:containerId `
-        -Command "mkdir -p $(Split-Path -Parent $envVars.APP_ENTRYPOINT_DEBUG_FILE_SERVER_PATH)" `
-        -ErrorMessage "Failed to create debug file directory in container"
-
-    Write-Host "Copying debug file to container..."
-    Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_DEBUG_FILE_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_DEBUG_FILE_SERVER_PATH)`"" `
-        -ErrorMessage "Failed to copy debug file to container"
-    
+        -ErrorMessage "Failed to copy entrypoint to container"    
   
     Write-Host "Converting line endings to Unix format..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
