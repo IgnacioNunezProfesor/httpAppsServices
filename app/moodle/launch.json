@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "bashdb",
+            "request": "launch",
+            "name": "Debug Alpine Entrypoint",
+            "program": "/entrypoint-moodle.sh",
+            "cwd": "/",
+            "pathBash": "/bin/bash",
+            "pathBashdb": "/usr/local/bin/bashdb",
+            "args": [],
+            "env": {
+                "DEBUG": "true"
+            }
+        }
+    ]
+}

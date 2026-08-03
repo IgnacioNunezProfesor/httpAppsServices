@@ -41,9 +41,6 @@ function Invoke-DockerCommand {
     
     return $output
 }
-
-
-
 function Invoke-DockerExecCommand {
     <#
     .SYNOPSIS
@@ -90,7 +87,7 @@ function Invoke-DockerExecCommand {
     return $output
 }
 
-function wait-to-Healthy{
+function waitHealthy{
 param(
     [integer]$containerId,
     [string]$containerName,
@@ -153,8 +150,6 @@ if (-not $isHealthy) {
 
 Write-Host "Container is ready."
 }
-
-
 function Get-ContainerLogs {
     <#
     .SYNOPSIS

@@ -8,6 +8,7 @@ param(
     [string]$Name,
     [string]$Url,
     [string]$Path,
+    [string]$Branch,
     [string]$Target
 )
 
@@ -29,7 +30,7 @@ function Show-Help {
     Write-Host "Modo directo con parámetros:"
     Write-Host ""
     Write-Host " Añadir submódulo:"
-    Write-Host " .\AdminApp.ps1 -Add -Name <nombre> -Url <url> -Path <ruta>"
+    Write-Host " .\AdminApp.ps1 -Add -Name <nombre> -Url <url> -Path <ruta> -Branch <rama>"
     Write-Host ""
     Write-Host " Eliminar submódulo:"
     Write-Host " .\AdminApp.ps1 -Remove -Path <ruta>"
@@ -69,7 +70,8 @@ function MainMenu {
             $name = Read-Host "Nombre del submódulo"
             $url = Read-Host "URL del repositorio GitHub"
             $path = Read-Host "Ruta destino"
-            Add-AppFromGit -SubmoduleName $name -GitHubUrl $url -DestinationPath $path
+            $branch = Read-Host "Rama del repositorio"
+            Add-AppFromGit -SubmoduleName $name -GitHubUrl $url -DestinationPath $path -Branch $branch
             MainMenu
         }
         "2" {
@@ -185,7 +187,7 @@ if ($Add) {
         Write-Host "Usa: .\AdminApp.ps1 -Help" -ForegroundColor Yellow
         exit 1
     }
-    Add-AppFromGit -SubmoduleName $Name -GitHubUrl $Url -DestinationPath $Path
+    Add-AppFromGit -SubmoduleName $Name -GitHubUrl $Url -DestinationPath $Path -Branch $Branch
     exit
 }
 

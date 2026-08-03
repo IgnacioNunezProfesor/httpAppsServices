@@ -7,7 +7,9 @@ function Add-AppFromGit {
         [string]$GitHubUrl,
     
         [Parameter(Mandatory = $true)]
-        [string]$DestinationPath
+        [string]$DestinationPath,
+
+        [string]$Branch = "main"
     )
 
     # Verificar si el submódulo ya existe
@@ -22,7 +24,7 @@ function Add-AppFromGit {
         $absoluteDestination = [System.IO.Path]::GetFullPath($DestinationPath)
         Write-Host "To (absolute): $DestinationPath --> $absoluteDestination"
     
-        git submodule add $GitHubUrl $DestinationPath
+        git submodule add $GitHubUrl $DestinationPath -b $Branch
     
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Submodule added successfully!" -ForegroundColor Green

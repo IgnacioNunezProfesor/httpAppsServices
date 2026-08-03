@@ -48,6 +48,8 @@ $requiredVars = @(
     'APP_COMPOSE_PATH',
     'APP_ENTRYPOINT_LOCAL_PATH',
     'APP_ENTRYPOINT_SERVER_PATH',
+    'APP_ENTRYPOINT_DEBUG_FILE_LOCAL_PATH',
+    'APP_ENTRYPOINT_DEBUG_FILE_SERVER_PATH',
     'HTTP_CONTAINER_NAME',
     'DB_IMAGE_NAME',
     'DB_CONTAINER_NAME',
@@ -87,7 +89,8 @@ try {
     & .\scripts\AdminApp.ps1 -add `
         -Name $envVars.APP_NAME `
         -Url $envVars.APP_GITHUB_URL `
-        -Path $envVars.APP_LOCAL_PATH
+        -Path $envVars.APP_LOCAL_PATH `
+        -Branch $envVars.APP_GITHUB_BRANCH
 
     if (-not $?) {
         Write-Error "Failed to register application"
@@ -162,6 +165,17 @@ Write-Host "Docker Compose file validated successfully." -ForegroundColor Green
     Write-Host "Copying entrypoint to container..."
     Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)`"" `
         -ErrorMessage "Failed to copy entrypoint to container"
+
+    Write-Host "Creating debug file directory in container..."
+    Invoke-DockerExecCommand -ContainerId $script:containerId `
+        -Command "mkdir -p $(Split-Path -Parent $envVars.APP_ENTRYPOINT_DEBUG_FILE_SERVER_PATH)" `
+        -ErrorMessage "Failed to create debug file directory in container"
+
+    Write-Host "Copying debug file to container..."
+    Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_DEBUG_FILE_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_DEBUG_FILE_SERVER_PATH)`"" `
+        -ErrorMessage "Failed to copy debug file to container"
+    
+  
     Write-Host "Converting line endings to Unix format..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "dos2unix $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
