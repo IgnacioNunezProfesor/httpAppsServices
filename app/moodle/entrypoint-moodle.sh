@@ -91,7 +91,7 @@ fi
 # -----------------------------------------------------------------------------
 # 3. GENERAR config.php (SI NO EXISTE)
 # -----------------------------------------------------------------------------
-config_file="${SERVER_ROOT_PATH}/config.php"
+config_file="${SERVER_ROOT_PATH}/config.php.back"
 
 if [ -f "$config_file" ]; then
     log "Existing config.php found. Backing up to config.php.bak..."
@@ -189,7 +189,7 @@ php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --non-interactive \
     --agree-license \
     --chmod=0777 \
-    --lang=en \
+    --lang=es \
     --wwwroot="http://${SERVER_NAME}:${SERVER_PORT}" \
     --dataroot="${SERVER_DATA_PATH}" \
     --dirroot="${SERVER_ROOT_PATH}" \
