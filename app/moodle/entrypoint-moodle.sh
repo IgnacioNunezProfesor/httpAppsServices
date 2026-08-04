@@ -178,20 +178,34 @@ fi
 
 
 # -----------------------------------------------------------------------------
-# 5. INSTALACIÓN DESATENDIDA DE LA BASE DE DATOS MOODLE
+# 5. INSTALACIÓN DESATENDIDA COMPLETA DE MOODLE
 # -----------------------------------------------------------------------------
-# Usamos install_database.php en lugar de install.php.
-# Esto evita reescribir config.php o generar bucles en las rutas dirroot/public.
-log "Checking/Installing Moodle database..."
+# Usamos el instalador CLI completo para que Moodle se configure en su totalidad
+# en modo no interactivo, sin depender de la instalación manual por navegador.
 
-php "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
+log "Checking/Installing Moodle with the complete unattended CLI installer..."
+
+php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --non-interactive \
     --agree-license \
+    --chmod=0777 \
+    --lang=en \
+    --wwwroot="http://${SERVER_NAME}:${SERVER_PORT}" \
+    --dataroot="${SERVER_DATA_PATH}" \
+    --dirroot="${SERVER_ROOT_PATH}" \
+    --dirlib="${SERVER_ROOT_PATH}/lib" \
+    --dbtype=mariadb \
+    --dbhost="${DB_HOST}" \
+    --dbname="${DB_NAME}" \
+    --dbuser="${DB_USER}" \
+    --dbpass="${DB_PASS}" \
+    --dbport="${DB_PORT}" \
+    --prefix=mdl_ \
+    --fullname="${APP_NAME}" \
+    --shortname="${APP_NAME}" \
     --adminuser="${APP_ADMIN_USER}" \
     --adminpass="${APP_ADMIN_PASS}" \
-    --adminemail="${APP_ADMIN_EMAIL}" \
-    --fullname="${APP_NAME}" \
-    --shortname="${APP_NAME}" || log "Database is already installed or populated. Continuing startup..."
+    --adminemail="${APP_ADMIN_EMAIL}" || log "Moodle is already installed or populated. Continuing startup..."
 
 # -----------------------------------------------------------------------------
 # 6. APLICAR PERMISOS
