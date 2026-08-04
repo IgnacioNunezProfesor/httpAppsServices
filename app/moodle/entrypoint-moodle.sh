@@ -129,7 +129,7 @@ global \$CFG;
 );
 
 \$CFG->wwwroot   = 'http://${SERVER_NAME}';
-\$CFG->dirroot   = '${SERVER_ROOT_PATH}'; # Crucial fix for Moodle 4.4+
+\$CFG->dirroot   = '${SERVER_ROOT_PATH}';
 \$CFG->dataroot  = '${SERVER_DATA_PATH}';
 
 \$CFG->admin     = 'admin';
@@ -144,8 +144,41 @@ else
     log "config.php already exists. Skipping creation."
 fi
 
+
+
 # -----------------------------------------------------------------------------
-# 4. INSTALACIÓN DESATENDIDA DE LA BASE DE DATOS MOODLE
+# 4. VALIDAR REQUISITOS CON COMPOSER
+# -----------------------------------------------------------------------------
+if [ -f "${SERVER_ROOT_PATH}/composer.json" ]; then
+    if command -v composer >/dev/null 2>&1; then
+        log "Checking Composer platform requirements..."
+        (
+            cd "${SERVER_ROOT_PATH}" || exit 1
+            composer check-platform-reqs --no-interaction
+        ) || {
+            log "ERROR: Composer platform requirements check failed."
+            exit 1
+        }
+
+        log "Installing Composer dependencies..."
+        (
+            cd "${SERVER_ROOT_PATH}" || exit 1
+            composer install --no-interaction --prefer-dist --no-progress
+        ) || {
+            log "ERROR: Composer install failed."
+            exit 1
+        }
+    else
+        log "WARNING: composer command not found. Skipping Composer platform requirements check and install."
+    fi
+else
+    log "No composer.json found in ${SERVER_ROOT_PATH}. Skipping Composer requirements check and install."
+fi
+
+
+
+# -----------------------------------------------------------------------------
+# 5. INSTALACIÓN DESATENDIDA DE LA BASE DE DATOS MOODLE
 # -----------------------------------------------------------------------------
 # Usamos install_database.php en lugar de install.php.
 # Esto evita reescribir config.php o generar bucles en las rutas dirroot/public.
@@ -161,7 +194,7 @@ php "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
     --shortname="${APP_NAME}" || log "Database is already installed or populated. Continuing startup..."
 
 # -----------------------------------------------------------------------------
-# 5. APLICAR PERMISOS
+# 6. APLICAR PERMISOS
 # -----------------------------------------------------------------------------
 log "Applying folder permissions..."
 
@@ -177,7 +210,7 @@ chown -R ${web_user}:${web_user} "${SERVER_DATA_PATH}"
 log "Permissions successfully applied for user ${web_user}."
 
 # -----------------------------------------------------------------------------
-# 6. ARRANCAR EL SERVIDOR APACHE
+# 7. ARRANCAR EL SERVIDOR APACHE
 # -----------------------------------------------------------------------------
 log "Starting Apache web server..."
 
