@@ -91,58 +91,58 @@ fi
 # -----------------------------------------------------------------------------
 # 3. GENERAR config.php (SI NO EXISTE)
 # -----------------------------------------------------------------------------
-config_file="${SERVER_ROOT_PATH}/config.php.back"
+#config_file="${SERVER_ROOT_PATH}/config.php.back"
 
-if [ -f "$config_file" ]; then
-    log "Existing config.php found. Backing up to config.php.bak..."
-    cp -f "$config_file" "${config_file}.bak"
-fi
+#if [ -f "$config_file" ]; then
+#    log "Existing config.php found. Backing up to config.php.bak..."
+#    cp -f "$config_file" "${config_file}.bak"
+#fi
 
-if [ ! -f "$config_file" ]; then
-    log "Generating Moodle config.php..."
+#if [ ! -f "$config_file" ]; then
+#    log "Generating Moodle config.php..."
 
     # Determinar si el puerto debe incluirse en el wwwroot
-    if [ "$SERVER_PORT" = "80" ] || [ "$SERVER_PORT" = "443" ]; then
-        wwwroot_url="http://${SERVER_NAME}"
-    else
-        wwwroot_url="http://${SERVER_NAME}:${SERVER_PORT}"
-    fi
+#    if [ "$SERVER_PORT" = "80" ] || [ "$SERVER_PORT" = "443" ]; then
+#        wwwroot_url="http://${SERVER_NAME}"
+#    else
+#        wwwroot_url="http://${SERVER_NAME}:${SERVER_PORT}"
+#    fi
 
-    cat > "$config_file" <<EOF
-<?php
-unset(\$CFG);
-global \$CFG;
-\$CFG = new stdClass();
+#    cat > "$config_file" <<EOF
+#<?php
+#unset(\$CFG);
+#global \$CFG;
+#\$CFG = new stdClass();
 
-\$CFG->dbtype    = 'mariadb';
-\$CFG->dblibrary = 'native';
-\$CFG->dbhost    = '${DB_HOST}';
-\$CFG->dbname    = '${DB_NAME}';
-\$CFG->dbuser    = '${DB_USER}';
-\$CFG->dbpass    = '${DB_PASS}';
-\$CFG->prefix    = 'mdl_';
-\$CFG->dboptions = array(
-    'dbpersist'   => 0,
-    'dbport'      => '${DB_PORT}',
-    'dbsocket'    => '',
-    'dbcollation' => 'utf8mb4_unicode_ci',
-);
+#\$CFG->dbtype    = 'mariadb';
+#\$CFG->dblibrary = 'native';
+#\$CFG->dbhost    = '${DB_HOST}';
+#\$CFG->dbname    = '${DB_NAME}';
+#\$CFG->dbuser    = '${DB_USER}';
+#\$CFG->dbpass    = '${DB_PASS}';
+#\$CFG->prefix    = 'mdl_';
+#\$CFG->dboptions = array(
+#    'dbpersist'   => 0,
+#    'dbport'      => '${DB_PORT}',
+#    'dbsocket'    => '',
+#    'dbcollation' => 'utf8mb4_unicode_ci',
+#);
 
-\$CFG->wwwroot   = 'http://${SERVER_NAME}';
-\$CFG->dirroot   = '${SERVER_ROOT_PATH}';
-\$CFG->dataroot  = '${SERVER_DATA_PATH}';
+#\$CFG->wwwroot   = 'http://${SERVER_NAME}';
+#\$CFG->dirroot   = '${SERVER_ROOT_PATH}';
+#\$CFG->dataroot  = '${SERVER_DATA_PATH}';
+#
+#\$CFG->admin     = 'admin';
+#\$CFG->directorypermissions = 02777;
+#\$CFG->filepermissions      = 0666;
+#
+#require_once(\$CFG->dirroot . '/lib/setup.php');
+#EOF
 
-\$CFG->admin     = 'admin';
-\$CFG->directorypermissions = 02777;
-\$CFG->filepermissions      = 0666;
-
-require_once(\$CFG->dirroot . '/lib/setup.php');
-EOF
-
-    log "config.php successfully created."
-else
-    log "config.php already exists. Skipping creation."
-fi
+#    log "config.php successfully created."
+#else
+#    log "config.php already exists. Skipping creation."
+#fi
 
 
 

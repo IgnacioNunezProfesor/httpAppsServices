@@ -33,7 +33,7 @@ function Invoke-DockerCommand {
         $formattedOutput = $output
     }
 
-    write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
+    #write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
     
     if (-not $?) {
         throw "${ErrorMessage}:`n$output"
@@ -78,7 +78,7 @@ function Invoke-DockerExecCommand {
         $formattedOutput = $output
     }
 
-    write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
+   # write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
     
     if (-not $?) {
         throw "${ErrorMessage}:`n$output"

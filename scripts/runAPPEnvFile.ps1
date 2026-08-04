@@ -101,22 +101,22 @@ try {
     # ============================================================================
     Write-Host "Starting Docker containers..." -ForegroundColor Green
 
-# ============================================================================
-# Validate Docker Compose File
-# ============================================================================
-Write-Host "Validating docker-compose file: $($envVars.APP_COMPOSE_PATH)" -ForegroundColor Yellow
+    # ============================================================================
+    # Validate Docker Compose File
+    # ============================================================================
+    Write-Host "Validating docker-compose file: $($envVars.APP_COMPOSE_PATH)" -ForegroundColor Yellow
 
-$composeCheck = Invoke-DockerCommand `
-    -Command "compose -f `"$($envVars.APP_COMPOSE_PATH)`" --env-file `"$EnvFile`" config" `
-    -ErrorMessage "Docker Compose validation failed"
+    $composeCheck = Invoke-DockerCommand `
+        -Command "compose -f `"$($envVars.APP_COMPOSE_PATH)`" --env-file `"$EnvFile`" config" `
+        -ErrorMessage "Docker Compose validation failed"
 
-if (-not $composeCheck) {
-    Write-Error "Docker Compose validation returned empty output. Please check your compose file."
-    Clear-Containers -reason "Invalid docker-compose.yml"
-    exit 1
-}
+    if (-not $composeCheck) {
+        Write-Error "Docker Compose validation returned empty output. Please check your compose file."
+        Clear-Containers -reason "Invalid docker-compose.yml"
+        exit 1
+    }
 
-Write-Host "Docker Compose file validated successfully." -ForegroundColor Green
+    Write-Host "Docker Compose file validated successfully." -ForegroundColor Green
 
 
     Invoke-DockerCommand -Command "compose -f `"$($envVars.APP_COMPOSE_PATH)`" --env-file `"$EnvFile`" up -d --build" `
