@@ -185,15 +185,20 @@ fi
 
 log "Checking/Installing Moodle with the complete unattended CLI installer..."
 
+# Build the Moodle web root URL without forcing the port for the standard HTTP/HTTPS ports.
+if [ "${SERVER_PORT}" = "80" ] || [ "${SERVER_PORT}" = "443" ]; then
+    wwwroot_url="http://${SERVER_NAME}"
+else
+    wwwroot_url="http://${SERVER_NAME}:${SERVER_PORT}"
+fi
+
 php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --non-interactive \
     --agree-license \
     --chmod=0777 \
     --lang=es \
-    --wwwroot="http://${SERVER_NAME}:${SERVER_PORT}" \
+    --wwwroot="${wwwroot_url}" \
     --dataroot="${SERVER_DATA_PATH}" \
-    --dirroot="${SERVER_ROOT_PATH}" \
-    --dirlib="${SERVER_ROOT_PATH}/lib" \
     --dbtype=mariadb \
     --dbhost="${DB_HOST}" \
     --dbname="${DB_NAME}" \
@@ -203,6 +208,7 @@ php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --prefix=mdl_ \
     --fullname="${APP_NAME}" \
     --shortname="${APP_NAME}" \
+    --summary="${APP_NAME} Moodle site" \
     --adminuser="${APP_ADMIN_USER}" \
     --adminpass="${APP_ADMIN_PASS}" \
     --adminemail="${APP_ADMIN_EMAIL}" || log "Moodle is already installed or populated. Continuing startup..."
