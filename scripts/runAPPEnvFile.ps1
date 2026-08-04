@@ -155,14 +155,34 @@ try {
     $script:containerId = $containerIds[0]
     Write-Host "Container detected: $containerName ($script:containerId)"
 
- 
+    # ============================================================================
+    # Copy Apache configuration files if provided
+    # ============================================================================
+    if ($envVars.APP_APACHE_CONFIG_PATH -and (Test-Path $envVars.APP_APACHE_CONFIG_PATH)) {
+        $apacheConfigFiles = Get-ChildItem -Path $envVars.APP_APACHE_CONFIG_PATH -Filter *.cfg -File
+
+        if ($apacheConfigFiles.Count -gt 0) {
+            Write-Host "Copying Apache configuration files from $($envVars.APP_APACHE_CONFIG_PATH) to /etc/apache2/conf.d/..."
+
+            foreach ($apacheConfigFile in $apacheConfigFiles) {
+                Invoke-DockerCommand -Command "cp `"$($apacheConfigFile.FullName)`" `"${script:containerId}:/etc/apache2/conf.d/`"" `
+                    -ErrorMessage "Failed to copy Apache config file $($apacheConfigFile.Name)"
+            }
+        }
+        else {
+            Write-Host "No Apache config files (*.cfg) found in $($envVars.APP_APACHE_CONFIG_PATH)."
+        }
+    }
 
     # ============================================================================
     # Copy and Execute Entrypoint
     # ============================================================================
     Write-Host "Copying entrypoint to container..."
     Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)`"" `
-        -ErrorMessage "Failed to copy entrypoint to container"    
+        -ErrorMessage "Failed to copy entrypoint to container"  
+    
+    
+        
   
     Write-Host "Converting line endings to Unix format..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
