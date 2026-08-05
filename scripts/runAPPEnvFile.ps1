@@ -159,7 +159,7 @@ try {
     # Copy Apache configuration files if provided
     # ============================================================================
     if ($envVars.APP_APACHE_CONFIG_PATH -and (Test-Path $envVars.APP_APACHE_CONFIG_PATH)) {
-        $apacheConfigFiles = Get-ChildItem -Path $envVars.APP_APACHE_CONFIG_PATH -Filter *.cfg -File
+        $apacheConfigFiles = Get-ChildItem -Path $envVars.APP_APACHE_CONFIG_PATH -Filter *.conf -File
 
         if ($apacheConfigFiles.Count -gt 0) {
             Write-Host "Copying Apache configuration files from $($envVars.APP_APACHE_CONFIG_PATH) to /etc/apache2/conf.d/..."
@@ -170,7 +170,7 @@ try {
             }
         }
         else {
-            Write-Host "No Apache config files (*.cfg) found in $($envVars.APP_APACHE_CONFIG_PATH)."
+            Write-Host "No Apache config files (*.conf) found in $($envVars.APP_APACHE_CONFIG_PATH)."
         }
     }
 
@@ -181,8 +181,6 @@ try {
     Invoke-DockerCommand -Command "cp `"$($envVars.APP_ENTRYPOINT_LOCAL_PATH)`" `"${script:containerId}:$($envVars.APP_ENTRYPOINT_SERVER_PATH)`"" `
         -ErrorMessage "Failed to copy entrypoint to container"  
     
-    
-        
   
     Write-Host "Converting line endings to Unix format..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
@@ -192,6 +190,12 @@ try {
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "chmod +x $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
         -ErrorMessage "Failed to set execute permissions"
+    Write-Host "Enabling rewrite mod..."
+    Invoke-DockerExecCommand -ContainerId $script:containerId `
+        -Command "a2enmod rewrite" `
+        -ErrorMessage "Failed to enable rewrite module"
+
+    
     Write-Host "Executing entrypoint in container..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "sh $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
