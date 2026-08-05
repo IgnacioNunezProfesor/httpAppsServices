@@ -190,12 +190,6 @@ try {
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "chmod +x $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
         -ErrorMessage "Failed to set execute permissions"
-    Write-Host "Enabling rewrite mod..."
-    Invoke-DockerExecCommand -ContainerId $script:containerId `
-        -Command "a2enmod rewrite" `
-        -ErrorMessage "Failed to enable rewrite module"
-
-    
     Write-Host "Executing entrypoint in container..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "sh $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
