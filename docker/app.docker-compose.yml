@@ -80,6 +80,7 @@ services:
       - ${HTTP_LOCAL_INFO_PATH}:${HTTP_SERVER_INFO_PATH}
       - ${HTTP_LOCAL_LOG_PATH}:${HTTP_SERVER_LOG_PATH}
       - ${HTTP_LOCAL_DATA_PATH}:${HTTP_SERVER_DATA_PATH}
+      - ../logs/php:/var/log/php
     depends_on:
       db:
         condition: service_healthy
