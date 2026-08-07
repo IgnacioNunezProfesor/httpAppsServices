@@ -194,6 +194,8 @@ fi
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Moodle wwwroot URL: ${wwwroot_url}"
 
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Launch php ${SERVER_ROOT_PATH}/admin/cli/install.php" 
+
 php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --non-interactive \
     --agree-license \
