@@ -192,6 +192,8 @@ else
     wwwroot_url="http://${SERVER_NAME}:${SERVER_PORT}"
 fi
 
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Moodle wwwroot URL: ${wwwroot_url}"
+
 php "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --non-interactive \
     --agree-license \
