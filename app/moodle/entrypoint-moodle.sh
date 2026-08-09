@@ -87,37 +87,61 @@ fi
 # -----------------------------------------------------------------------------
 log "Checking/Installing Moodle with unattended CLI installer..."
 
-if [ "${SERVER_PORT}" = "80" ] || [ "${SERVER_PORT}" = "443" ]; then
+if [ "${LOCAL_PORT}" = "80" ] || [ "${LOCAL_PORT}" = "443" ]; then
     wwwroot_url="http://${SERVER_NAME}"
 else
-    wwwroot_url="http://${SERVER_NAME}:${SERVER_PORT}"
+    wwwroot_url="http://${SERVER_NAME}:${LOCAL_PORT}"
 fi
 
 log "INFO: Moodle wwwroot URL: ${wwwroot_url}"
 
 cd "${SERVER_ROOT_PATH}"
 
-php "./admin/cli/install.php" \
-    --non-interactive \
-    --agree-license \
-    --chmod=0777 \
-    --lang=es \
-    --wwwroot="${wwwroot_url}" \
-    --dataroot="${SERVER_DATA_PATH}" \
-    --dbtype=mariadb \
-    --dbhost="${DB_HOST}" \
-    --dbname="${DB_NAME}" \
-    --dbuser="${DB_USER}" \
-    --dbpass="${DB_PASS}" \
-    --dbport="${DB_PORT}" \
-    --prefix=mdl_ \
-    --fullname="${APP_NAME}" \
-    --shortname="${APP_NAME}" \
-    --summary="${APP_NAME} Moodle site" \
-    --adminuser="${APP_ADMIN_USER}" \
-    --adminpass="${APP_ADMIN_PASS}" \
-    --adminemail="${APP_ADMIN_EMAIL}" || \
-    log "Moodle is already installed. Continuing startup..."
+log "Running Moodle CLI installer..."
+
+install_cmd=(
+    php
+    "./admin/cli/install.php"
+    --non-interactive
+    --agree-license
+    --chmod=0777
+    --lang=es
+    --wwwroot="${wwwroot_url}"
+    --dataroot="${SERVER_DATA_PATH}"
+    --dbtype=mariadb
+    --dbhost="${DB_HOST}"
+    --dbname="${DB_NAME}"
+    --dbuser="${DB_USER}"
+    --dbpass="${DB_PASS}"
+    --dbport="${DB_PORT}"
+    --prefix=mdl_
+    --fullname="${APP_NAME}"
+    --shortname="${APP_NAME}"
+    --summary="${APP_NAME} Moodle site"
+    --adminuser="${APP_ADMIN_USER}"
+    --adminpass="${APP_ADMIN_PASS}"
+    --adminemail="${APP_ADMIN_EMAIL}"
+)
+
+printf -v install_cmd_display '%q ' "${install_cmd[@]}"
+log "Command: ${install_cmd_display}"
+
+install_log="$(mktemp)"
+if "${install_cmd[@]}" >"$install_log" 2>&1; then
+    log "Moodle installation completed successfully."
+else
+    install_status=$?
+    if grep -qiE "already installed|already exists|already configured|site already exists" "$install_log"; then
+        log "Moodle is already installed. Continuing startup..."
+        cat "$install_log" >&2
+    else
+        log "ERROR: Moodle installer failed. Showing errors:"
+        cat "$install_log" >&2
+        rm -f "$install_log"
+        exit "$install_status"
+    fi
+fi
+rm -f "$install_log"
 
 # -----------------------------------------------------------------------------
 # 5. PURGAR CACHES Y REGENERAR AUTOLOAD DE MOODLE
