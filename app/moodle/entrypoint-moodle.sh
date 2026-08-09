@@ -99,35 +99,37 @@ cd "${SERVER_ROOT_PATH}"
 
 log "Running Moodle CLI installer..."
 
-install_cmd=(
-    php
-    "./admin/cli/install.php"
-    --non-interactive
-    --agree-license
-    --chmod=0777
-    --lang=es
-    --wwwroot="${wwwroot_url}"
-    --dataroot="${SERVER_DATA_PATH}"
-    --dbtype=mariadb
-    --dbhost="${DB_HOST}"
-    --dbname="${DB_NAME}"
-    --dbuser="${DB_USER}"
-    --dbpass="${DB_PASS}"
-    --dbport="${DB_PORT}"
-    --prefix=mdl_
-    --fullname="${APP_NAME}"
-    --shortname="${APP_NAME}"
-    --summary="${APP_NAME} Moodle site"
-    --adminuser="${APP_ADMIN_USER}"
-    --adminpass="${APP_ADMIN_PASS}"
+set -- \
+    php \
+    "./admin/cli/install.php" \
+    --non-interactive \
+    --agree-license \
+    --chmod=0777 \
+    --lang=es \
+    --wwwroot="${wwwroot_url}" \
+    --dataroot="${SERVER_DATA_PATH}" \
+    --dbtype=mariadb \
+    --dbhost="${DB_HOST}" \
+    --dbname="${DB_NAME}" \
+    --dbuser="${DB_USER}" \
+    --dbpass="${DB_PASS}" \
+    --dbport="${DB_PORT}" \
+    --prefix=mdl_ \
+    --fullname="${APP_NAME}" \
+    --shortname="${APP_NAME}" \
+    --summary="${APP_NAME} Moodle site" \
+    --adminuser="${APP_ADMIN_USER}" \
+    --adminpass="${APP_ADMIN_PASS}" \
     --adminemail="${APP_ADMIN_EMAIL}"
-)
 
-printf -v install_cmd_display '%q ' "${install_cmd[@]}"
+install_cmd_display=""
+for arg in "$@"; do
+    install_cmd_display="${install_cmd_display}${arg} "
+done
 log "Command: ${install_cmd_display}"
 
 install_log="$(mktemp)"
-if "${install_cmd[@]}" >"$install_log" 2>&1; then
+if "$@" >"$install_log" 2>&1; then
     log "Moodle installation completed successfully."
 else
     install_status=$?
