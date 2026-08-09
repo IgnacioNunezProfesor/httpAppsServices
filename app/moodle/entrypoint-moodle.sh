@@ -32,6 +32,8 @@ for var in $required_vars; do
     if [ -z "$value" ]; then
         log "ERROR: Required environment variable '$var' is missing or empty."
         exit 1
+    else
+        log "INFO: Environment variable '$var' is set to '$value'."
     fi
 done
 
