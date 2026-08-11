@@ -2,7 +2,7 @@
 set -e
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> /var/log/apache2/entrypoint-moodle.log
 }
 
 log "===== MOODLE UNATTENDED INSTALLER ====="
