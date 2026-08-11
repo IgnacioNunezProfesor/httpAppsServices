@@ -112,6 +112,8 @@ log "INFO: Moodle wwwroot URL: ${wwwroot_url}"
 
 log "Running Moodle CLI installer..."
 
+php /var/www/php-info/php-info.php
+
 set -- \
     php \
     "${SERVER_ROOT_PATH}/admin/cli/install.php" \
