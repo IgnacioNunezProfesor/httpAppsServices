@@ -47,6 +47,21 @@ if [ ! -d "$SERVER_DATA_PATH" ]; then
     mkdir -p "$SERVER_DATA_PATH"
 fi
 
+log "Applying folder permissions..."
+
+web_user="apache"
+if ! id "$web_user" >/dev/null 2>&1; then
+    web_user="www-data"
+fi
+
+chown -R ${web_user}:${web_user} "${SERVER_ROOT_PATH}"
+chown -R ${web_user}:${web_user} "${SERVER_DATA_PATH}"
+
+chmod -R 750 "${SERVER_ROOT_PATH}"
+chmod -R 770 "${SERVER_DATA_PATH}"
+
+log "Permissions successfully applied for user ${web_user}."
+
 # -----------------------------------------------------------------------------
 # 3. VALIDAR REQUISITOS CON COMPOSER
 # -----------------------------------------------------------------------------
@@ -95,13 +110,11 @@ fi
 
 log "INFO: Moodle wwwroot URL: ${wwwroot_url}"
 
-cd "${SERVER_ROOT_PATH}"
-
 log "Running Moodle CLI installer..."
 
 set -- \
     php \
-    "./admin/cli/install.php" \
+    "${SERVER_ROOT_PATH}/admin/cli/install.php" \
     --non-interactive \
     --agree-license \
     --chmod=0777 \
@@ -161,20 +174,7 @@ else
     log "OPcache not enabled or not available."
 fi
 
-# -----------------------------------------------------------------------------
-# 7. APLICAR PERMISOS
-# -----------------------------------------------------------------------------
-log "Applying folder permissions..."
 
-web_user="apache"
-if ! id "$web_user" >/dev/null 2>&1; then
-    web_user="www-data"
-fi
-
-chown -R ${web_user}:${web_user} "${SERVER_ROOT_PATH}"
-chown -R ${web_user}:${web_user} "${SERVER_DATA_PATH}"
-
-log "Permissions successfully applied for user ${web_user}."
 
 # -----------------------------------------------------------------------------
 # 8. ARRANCAR APACHE
