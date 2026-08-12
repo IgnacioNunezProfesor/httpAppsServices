@@ -178,9 +178,13 @@ if [ ! -f "${SERVER_ROOT_PATH}/admin/cli/install_database.php" ]; then
     log "ERROR: Moodle database installation script not found at ${SERVER_ROOT_PATH}/admin/cli/install_database.php."
     exit 1
 else
-    su -s apache -c php "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
+    cd ${SERVER_ROOT_PATH} || {
+        log "ERROR: Failed to change directory to ${SERVER_ROOT_PATH}."
+        exit 1
+    }
+    su -s apache -c php "./admin/cli/install_database.php -h" || {
         log "ERROR: Moodle database installation script failed."
-    }    
+    } 
 fi
 
 set -- \
