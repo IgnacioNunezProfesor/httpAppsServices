@@ -192,7 +192,7 @@ try {
         -Command "chmod +x $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
         -ErrorMessage "Failed to set execute permissions"
     
-        Write-Host "Executing entrypoint in container..."
+    Write-Host "Executing entrypoint in container..."
     Invoke-DockerExecCommand -ContainerId $script:containerId `
         -Command "sh $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
         -ErrorMessage "Failed to execute entrypoint"

@@ -24,7 +24,7 @@ function Invoke-DockerCommand {
 
     write-Host "Executing Docker command: docker $Command" -ForegroundColor Yellow
 
-    $output = Invoke-Expression "docker $Command 2>&1"
+    $output = Invoke-Expression "docker $Command"# 2>&1"
 
     # If output is an array, join into a single well-formatted string for display
     if ($output -is [System.Array]) {
@@ -33,7 +33,7 @@ function Invoke-DockerCommand {
         $formattedOutput = $output
     }
 
-    #write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
+    write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
     
     if (-not $?) {
         throw "${ErrorMessage}:`n$output"
@@ -69,7 +69,7 @@ function Invoke-DockerExecCommand {
         [string]$ErrorMessage
     )
 
-    $output = Invoke-Expression "docker exec $ContainerId $Command 2>&1"
+    $output = Invoke-Expression "docker exec $ContainerId $Command"# 2>&1"
     
      # If output is an array, join into a single well-formatted string for display
     if ($output -is [System.Array]) {
@@ -78,7 +78,7 @@ function Invoke-DockerExecCommand {
         $formattedOutput = $output
     }
 
-   # write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
+   write-Host "Docker command output:`n$formattedOutput" -ForegroundColor Cyan
     
     if (-not $?) {
         throw "${ErrorMessage}:`n$output"
