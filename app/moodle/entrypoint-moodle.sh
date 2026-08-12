@@ -155,11 +155,15 @@ fi
 # 5. UNATTENDED DATABASE INSTALLATION
 # -----------------------------------------------------------------------------
 log "Checking/Installing Moodle database..."
-
-php "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
-    log "ERROR: Moodle database installation script not found or not executable."
+if [ ! -f "${SERVER_ROOT_PATH}/admin/cli/install_database.php" ]; then
+    log "ERROR: Moodle database installation script not found at ${SERVER_ROOT_PATH}/admin/cli/install_database.php."
     exit 1
-}
+else
+    php "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
+        log "ERROR: Moodle database installation script failed."
+        exit 1
+    }    
+fi
 
 set -- \
     php \
