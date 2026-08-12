@@ -95,9 +95,9 @@ if [ -f "${SERVER_ROOT_PATH}/composer.json" ]; then
         (
             cd "${SERVER_ROOT_PATH}" || exit 1
             export COMPOSER_ROOT_VERSION="${MOODLE_VERSION:-4.5.0}"
-            composer check-platform-reqs --no-interaction && \
+            su -s /bin/sh apache -c "composer check-platform-reqs --no-interaction && \
             composer install --no-interaction --prefer-dist --no-progress && \
-            composer dump-autoload --optimize
+            composer dump-autoload --optimize"
         ) || {
             log "ERROR: Composer tasks failed."
             exit 1
@@ -178,14 +178,13 @@ if [ ! -f "${SERVER_ROOT_PATH}/admin/cli/install_database.php" ]; then
     log "ERROR: Moodle database installation script not found at ${SERVER_ROOT_PATH}/admin/cli/install_database.php."
     exit 1
 else
-    sudo apachephp "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
+    su -s apache -c php "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
         log "ERROR: Moodle database installation script failed."
-        exit 1
     }    
 fi
 
 set -- \
-    php \
+    su -s apache -c php \
     "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
     --lang="es" \
     --adminuser="${APP_ADMIN_USER}" \
