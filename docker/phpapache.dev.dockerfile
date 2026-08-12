@@ -3,7 +3,7 @@ FROM alpine:3.21
 ARG BUILD_HTTP_APK_REQ=""
 
 # Update and install Apache, PHP 8.4 and extensions
-RUN apk update && apk upgrade && apk --no-cache add apache2 apache2-utils apache2-proxy php php-apache2 curl dos2unix ${BUILD_HTTP_APK_REQ}
+RUN apk update && apk upgrade && apk --no-cache add apache2 apache2-utils apache2-proxy bash procps lsof php php-apache2 curl dos2unix ${BUILD_HTTP_APK_REQ}
 
 COPY ./docker/phpapache/apache/httpd.conf /etc/apache2/httpd.conf
 COPY ./docker/phpapache/apache/conf.d/*.conf /etc/apache2/conf.d/

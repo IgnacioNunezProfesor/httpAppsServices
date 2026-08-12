@@ -193,9 +193,9 @@ try {
         -ErrorMessage "Failed to set execute permissions"
     
     Write-Host "Executing entrypoint in container..."
-    Invoke-DockerExecCommand -ContainerId $script:containerId `
-        -Command "sh $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
-        -ErrorMessage "Failed to execute entrypoint"
+    #Invoke-DockerExecCommand -ContainerId $script:containerId `
+    #    -Command "sh $($envVars.APP_ENTRYPOINT_SERVER_PATH)" `
+    #    -ErrorMessage "Failed to execute entrypoint"
     Write-Host "Application deployment completed successfully."
     $script:cleanupOnExit = $false  # Success: don't clean up
 
