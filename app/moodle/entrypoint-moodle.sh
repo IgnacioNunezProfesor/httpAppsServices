@@ -156,18 +156,22 @@ fi
 # -----------------------------------------------------------------------------
 log "Checking/Installing Moodle database..."
 
+php "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
+    log "ERROR: Moodle database installation script not found or not executable."
+    exit 1
+}
+
 set -- \
     php \
     "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
-    --agree-license \
-    --fullname="${APP_NAME}" \
-    --shortname="${APP_NAME}" \
-    --summary="${APP_NAME} Moodle site" \
+    --lang="es" \
     --adminuser="${APP_ADMIN_USER}" \
     --adminpass="${APP_ADMIN_PASS}" \
     --adminemail="${APP_ADMIN_EMAIL}" \
-    --adminfirstname="Admin" \
-    --adminlastname="User"
+    --agree-license \
+    --fullname="${APP_NAME}" \
+    --shortname="${APP_NAME}" \
+    --summary="${APP_NAME} Moodle site"    
 
 log "Running database installation..."
 
