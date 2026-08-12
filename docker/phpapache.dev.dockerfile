@@ -13,11 +13,9 @@ COPY ./docker/phpapache/php/php.ini /tmp/php.ini
 COPY ./docker/phpapache/php/conf.d/*.ini /tmp/conf.d/
 
 # Detectar carpeta real de configuración de PHP
-RUN echo "Detecting PHP configuration directory: $(php --ini | grep 'Configuration File' | awk '{print $NF}')" && \
-    PHP_INI_DIR="$(php --ini | grep 'Configuration File' | awk '{print $NF}')" && \
+RUN PHP_INI_DIR="$(php --ini | grep 'Configuration File (php.ini) Path' | awk '{print $NF}' | tr -d '\r')" && \
     echo "PHP config dir detected: $PHP_INI_DIR" && \
     mkdir -p "$PHP_INI_DIR/conf.d" && \
-    echo "Copying PHP configuration files to $PHP_INI_DIR" && \
     mv -f /tmp/php.ini "$PHP_INI_DIR/php.ini" && \
     mv -f /tmp/conf.d/*.ini "$PHP_INI_DIR/conf.d/"
 
