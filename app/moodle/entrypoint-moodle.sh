@@ -10,6 +10,30 @@ log "Starting entrypoint for ${APP_NAME:-Moodle}"
 log "DEBUG: Script PID: $$"
 
 # -----------------------------------------------------------------------------
+# 0. CORREGIR ORDEN DE CARGA DE MÓDULOS PHP (ALPINE / PHP 8.3)
+# -----------------------------------------------------------------------------
+PHP_CONF_DIR="/etc/php83/conf.d"
+
+if [ -d "$PHP_CONF_DIR" ]; then
+    log "Fixing PHP module loading order in $PHP_CONF_DIR..."
+    (
+        cd "$PHP_CONF_DIR" || exit 1
+
+        # Asegurar que los módulos core/base tengan prioridad de carga
+        [ -f dom.ini ] && mv dom.ini 00_dom.ini 2>/dev/null || true
+        [ -f mysqlnd.ini ] && mv mysqlnd.ini 00_mysqlnd.ini 2>/dev/null || true
+
+        # Asegurar que las extensiones dependientes carguen después
+        [ -f xmlreader.ini ] && mv xmlreader.ini 10_xmlreader.ini || true
+        [ -f pdo_mysql.ini ] && mv pdo_mysql.ini 10_pdo_mysql.ini || true
+        [ -f mysqli.ini ] && mv mysqli.ini 10_mysqli.ini || true
+    )
+    log "PHP module loading order successfully configured."
+else
+    log "WARNING: Directory $PHP_CONF_DIR not found. Skipping PHP module order fix."
+fi
+
+# -----------------------------------------------------------------------------
 # 1. VALIDAR VARIABLES DE ENTORNO
 # -----------------------------------------------------------------------------
 required_vars="
@@ -70,26 +94,21 @@ if [ -f "${SERVER_ROOT_PATH}/composer.json" ]; then
         log "Checking Composer platform requirements..."
         (
             cd "${SERVER_ROOT_PATH}" || exit 1
-            composer check-platform-reqs --no-interaction
-        ) || {
-            log "ERROR: Composer platform requirements check failed."
-            exit 1
-        }
-
-        log "Installing Composer dependencies..."
-        (
-            cd "${SERVER_ROOT_PATH}" || exit 1
-            composer install --no-interaction --prefer-dist --no-progress
-        ) || {
-            log "ERROR: Composer install failed."
-            exit 1
-        }
-
-        log "Optimizing Composer autoload..."
-        (
-            cd "${SERVER_ROOT_PATH}" || exit 1
+            export COMPOSER_ROOT_VERSION="${MOODLE_VERSION:-4.5.0}"
+            composer check-platform-reqs --no-interaction && \
+            composer install --no-interaction --prefer-dist --no-progress && \
             composer dump-autoload --optimize
-        )
+        ) || {
+            log "ERROR: Composer tasks failed."
+            exit 1
+        }
+
+        # Asegurar permisos correctos sobre la carpeta vendor recién generada
+        if [ -d "${SERVER_ROOT_PATH}/vendor" ]; then
+            log "Applying ${web_user}:${web_user} ownership to vendor folder..."
+            chown -R "${web_user}:${web_user}" "${SERVER_ROOT_PATH}/vendor"
+            chmod -R 750 "${SERVER_ROOT_PATH}/vendor"
+        fi
     else
         log "WARNING: composer command not found. Skipping Composer checks."
     fi
@@ -159,7 +178,7 @@ if [ ! -f "${SERVER_ROOT_PATH}/admin/cli/install_database.php" ]; then
     log "ERROR: Moodle database installation script not found at ${SERVER_ROOT_PATH}/admin/cli/install_database.php."
     exit 1
 else
-    php "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
+    sudo apachephp "${SERVER_ROOT_PATH}/admin/cli/install_database.php -h" || {
         log "ERROR: Moodle database installation script failed."
         exit 1
     }    
@@ -186,7 +205,7 @@ else
     install_status=$?
     if grep -qiE "already installed|tables already exist|already configured" "$install_log"; then
         log "Moodle database is already populated. Continuing startup..."
-    else
+        else
         log "ERROR: Moodle database installation failed. Showing errors:"
         cat "$install_log" >&2
         rm -f "$install_log"
@@ -196,13 +215,13 @@ fi
 rm -f "$install_log"
 
 # -----------------------------------------------------------------------------
-# 5. PURGAR CACHES Y REGENERAR AUTOLOAD DE MOODLE
+# 6. PURGAR CACHES Y REGENERAR AUTOLOAD DE MOODLE
 # -----------------------------------------------------------------------------
 log "Purging Moodle caches..."
 php "${SERVER_ROOT_PATH}/admin/cli/purge_caches.php" || log "WARNING: Cache purge failed."
 
 # -----------------------------------------------------------------------------
-# 6. RESETEAR OPCACHE (si existe)
+# 7. RESETEAR OPCACHE (si existe)
 # -----------------------------------------------------------------------------
 if php -r "echo function_exists('opcache_reset');"; then
     log "Resetting OPcache..."
@@ -210,8 +229,6 @@ if php -r "echo function_exists('opcache_reset');"; then
 else
     log "OPcache not enabled or not available."
 fi
-
-
 
 # -----------------------------------------------------------------------------
 # 8. ARRANCAR APACHE
