@@ -156,22 +156,23 @@ fi
 # -----------------------------------------------------------------------------
 log "Checking/Installing Moodle database..."
 
-install_args=(
-    php
-    "${SERVER_ROOT_PATH}/admin/cli/install_database.php"
-    --agree-license
-    --fullname="${APP_NAME}"
-    --shortname="${APP_NAME}"
-    --summary="${APP_NAME} Moodle site"
-    --adminuser="${APP_ADMIN_USER}"
-    --adminpass="${APP_ADMIN_PASS}"
-    --adminemail="${APP_ADMIN_EMAIL}"
-    --adminfirstname="Admin"
+set -- \
+    php \
+    "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
+    --agree-license \
+    --fullname="${APP_NAME}" \
+    --shortname="${APP_NAME}" \
+    --summary="${APP_NAME} Moodle site" \
+    --adminuser="${APP_ADMIN_USER}" \
+    --adminpass="${APP_ADMIN_PASS}" \
+    --adminemail="${APP_ADMIN_EMAIL}" \
+    --adminfirstname="Admin" \
     --adminlastname="User"
-)
+
+log "Running database installation..."
 
 install_log="$(mktemp)"
-if "${install_args[@]}" >"$install_log" 2>&1; then
+if "$@" >"$install_log" 2>&1; then
     log "Moodle database setup completed successfully."
 else
     install_status=$?
@@ -179,67 +180,6 @@ else
         log "Moodle database is already populated. Continuing startup..."
     else
         log "ERROR: Moodle database installation failed. Showing errors:"
-        cat "$install_log" >&2
-        rm -f "$install_log"
-        exit "$install_status"
-    fi
-fi
-rm -f "$install_log"
-
-# -----------------------------------------------------------------------------
-# 4. INSTALACIÓN DESATENDIDA DE MOODLE
-# -----------------------------------------------------------------------------
-log "Checking/Installing Moodle with unattended CLI installer..."
-
-if [ "${LOCAL_PORT}" = "80" ] || [ "${LOCAL_PORT}" = "443" ]; then
-    wwwroot_url="http://${SERVER_NAME}"
-else
-    wwwroot_url="http://${SERVER_NAME}:${LOCAL_PORT}"
-fi
-
-log "INFO: Moodle wwwroot URL: ${wwwroot_url}"
-
-log "Running Moodle CLI installer..."
-
-set -- \
-    php \
-    "${SERVER_ROOT_PATH}/admin/cli/install.php" \
-    --non-interactive \
-    --agree-license \
-    --chmod=0775 \
-    --lang=es \
-    --wwwroot="${wwwroot_url}" \
-    --dataroot="${SERVER_DATA_PATH}" \
-    --dbtype=mariadb \
-    --dbhost="${DB_HOST}" \
-    --dbname="${DB_NAME}" \
-    --dbuser="${DB_USER}" \
-    --dbpass="${DB_PASS}" \
-    --dbport="${DB_PORT}" \
-    --prefix=mdl_ \
-    --fullname="${APP_NAME}" \
-    --shortname="${APP_NAME}" \
-    --summary="${APP_NAME} Moodle site" \
-    --adminuser="${APP_ADMIN_USER}" \
-    --adminpass="${APP_ADMIN_PASS}" \
-    --adminemail="${APP_ADMIN_EMAIL}"
-
-install_cmd_display=""
-for arg in "$@"; do
-    install_cmd_display="${install_cmd_display}${arg} "
-done
-log "Command: ${install_cmd_display}"
-
-install_log="$(mktemp)"
-if "$@" >"$install_log" 2>&1; then
-    log "Moodle installation completed successfully."
-else
-    install_status=$?
-    if grep -qiE "already installed|already exists|already configured|site already exists" "$install_log"; then
-        log "Moodle is already installed. Continuing startup..."
-        cat "$install_log" >&2
-    else
-        log "ERROR: Moodle installer failed. Showing errors:"
         cat "$install_log" >&2
         rm -f "$install_log"
         exit "$install_status"
