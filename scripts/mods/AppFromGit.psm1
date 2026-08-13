@@ -24,7 +24,7 @@ function Add-AppFromGit {
         $absoluteDestination = [System.IO.Path]::GetFullPath($DestinationPath)
         Write-Host "To (absolute): $DestinationPath --> $absoluteDestination"
     
-        git submodule add -b $Branch $GitHubUrl $DestinationPath 
+        git submodule add -b $Branch --depth 1 $GitHubUrl $DestinationPath 
     
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Submodule added successfully!" -ForegroundColor Green
