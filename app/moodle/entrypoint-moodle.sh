@@ -93,11 +93,13 @@ if [ -f "${SERVER_ROOT_PATH}/composer.json" ]; then
     if command -v composer >/dev/null 2>&1; then
         log "Checking Composer platform requirements..."
         (
+
             cd "${SERVER_ROOT_PATH}" || exit 1
             export COMPOSER_ROOT_VERSION="${MOODLE_VERSION:-4.5.0}"
             su -s /bin/sh apache -c "composer check-platform-reqs --no-interaction && \
             composer install --no-interaction --prefer-dist --no-progress && \
             composer dump-autoload --optimize"
+            log "Composer tasks completed successfully."
         ) || {
             log "ERROR: Composer tasks failed."
             exit 1
@@ -108,6 +110,8 @@ if [ -f "${SERVER_ROOT_PATH}/composer.json" ]; then
             log "Applying ${web_user}:${web_user} ownership to vendor folder..."
             chown -R "${web_user}:${web_user}" "${SERVER_ROOT_PATH}/vendor"
             chmod -R 750 "${SERVER_ROOT_PATH}/vendor"
+        else
+            log "WARNING: vendor folder not found after Composer install. Skipping ownership and permission adjustments."
         fi
     else
         log "WARNING: composer command not found. Skipping Composer checks."
@@ -178,26 +182,24 @@ if [ ! -f "${SERVER_ROOT_PATH}/admin/cli/install_database.php" ]; then
     log "ERROR: Moodle database installation script not found at ${SERVER_ROOT_PATH}/admin/cli/install_database.php."
     exit 1
 else
+    log "Moodle database installation script found. Proceeding with database setup..."
     cd ${SERVER_ROOT_PATH} || {
         log "ERROR: Failed to change directory to ${SERVER_ROOT_PATH}."
         exit 1
     }
-    su -s apache -c php "./admin/cli/install_database.php -h" || {
+    log "Running database installation script to check if the database is already installed..."
+    log $(su -s /bin/sh apache -c 'php ./admin/cli/install_database.php -h') || {
         log "ERROR: Moodle database installation script failed."
-    } 
+        exit 1
+    }
+    log "Database installation script executed successfully. Checking if the database is already installed..."
+    if su -s /bin/sh apache -c 'php ./admin/cli/install_database.php --check' | grep -q "already installed"; then
+        log "Moodle database is already installed. Skipping installation." 
+    fi    
+    exit 0
 fi
 
-set -- \
-    su -s apache -c php \
-    "${SERVER_ROOT_PATH}/admin/cli/install_database.php" \
-    --lang="es" \
-    --adminuser="${APP_ADMIN_USER}" \
-    --adminpass="${APP_ADMIN_PASS}" \
-    --adminemail="${APP_ADMIN_EMAIL}" \
-    --agree-license \
-    --fullname="${APP_NAME}" \
-    --shortname="${APP_NAME}" \
-    --summary="${APP_NAME} Moodle site"    
+set -- su -s /bin/sh apache -c "php \"${SERVER_ROOT_PATH}/admin/cli/install_database.php\" --lang=\"es\" --adminuser=\"${APP_ADMIN_USER}\" --adminpass=\"${APP_ADMIN_PASS}\" --adminemail=\"${APP_ADMIN_EMAIL}\" --agree-license --fullname=\"${APP_NAME}\" --shortname=\"${APP_NAME}\" --summary=\"${APP_NAME} Moodle site\""
 
 log "Running database installation..."
 
