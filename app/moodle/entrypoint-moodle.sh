@@ -96,9 +96,12 @@ if [ -f "${SERVER_ROOT_PATH}/composer.json" ]; then
 
             cd "${SERVER_ROOT_PATH}" || exit 1
             export COMPOSER_ROOT_VERSION="${MOODLE_VERSION:-4.5.0}"
-            su -s /bin/sh apache -c "composer check-platform-reqs --no-interaction && \
-            composer install --no-interaction --prefer-dist --no-progress && \
-            composer dump-autoload --optimize"
+            log "INFO: Using COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} for Composer tasks."
+            su -s /bin/sh apache -c "composer check-platform-reqs --no-interaction"
+            log "Composer platform requirements check completed successfully."
+            su -s /bin/sh apache -c "composer install --no-interaction --prefer-dist --no-progress"
+            log "Composer install completed successfully."
+            su -s /bin/sh apache -c "composer dump-autoload --optimize"
             log "Composer tasks completed successfully."
         ) || {
             log "ERROR: Composer tasks failed."
@@ -110,6 +113,7 @@ if [ -f "${SERVER_ROOT_PATH}/composer.json" ]; then
             log "Applying ${web_user}:${web_user} ownership to vendor folder..."
             chown -R "${web_user}:${web_user}" "${SERVER_ROOT_PATH}/vendor"
             chmod -R 750 "${SERVER_ROOT_PATH}/vendor"
+            log "Ownership and permissions for vendor folder successfully applied."
         else
             log "WARNING: vendor folder not found after Composer install. Skipping ownership and permission adjustments."
         fi
@@ -124,7 +128,6 @@ fi
 # 4. CONFIG.PHP GENERATION
 # -----------------------------------------------------------------------------
 log "Checking for config.php..."
-
 CONFIG_FILE="${SERVER_ROOT_PATH}/config.php"
 
 if [ "${SERVER_PORT}" = "80" ] || [ "${SERVER_PORT}" = "443" ]; then
@@ -132,6 +135,8 @@ if [ "${SERVER_PORT}" = "80" ] || [ "${SERVER_PORT}" = "443" ]; then
 else
     wwwroot_url="http://${SERVER_NAME}:${SERVER_PORT}"
 fi
+
+log "INFO: Moodle wwwroot URL set to ${wwwroot_url}"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     log "Creating config.php dynamically from environment variables..."
@@ -195,12 +200,11 @@ else
     log "Database installation script executed successfully. Checking if the database is already installed..."
     if su -s /bin/sh apache -c 'php ./admin/cli/install_database.php --check' | grep -q "already installed"; then
         log "Moodle database is already installed. Skipping installation." 
-    fi    
-    exit 0
+    fi
+    log "Moodle database installation check completed."    
 fi
-
+log "Proceeding with Moodle database installation..."
 set -- su -s /bin/sh apache -c "php \"${SERVER_ROOT_PATH}/admin/cli/install_database.php\" --lang=\"es\" --adminuser=\"${APP_ADMIN_USER}\" --adminpass=\"${APP_ADMIN_PASS}\" --adminemail=\"${APP_ADMIN_EMAIL}\" --agree-license --fullname=\"${APP_NAME}\" --shortname=\"${APP_NAME}\" --summary=\"${APP_NAME} Moodle site\""
-
 log "Running database installation..."
 
 install_log="$(mktemp)"
