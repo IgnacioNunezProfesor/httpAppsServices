@@ -5,12 +5,19 @@ param(
     [switch]$Update,
     [switch]$Help,
     [switch]$Purge,
+
+    [switch]$Download,
+    [string]$DownloadUrl,
+    [string]$Version,
+    [string]$Destination,
+
     [string]$Name,
     [string]$Url,
     [string]$Path,
     [string]$Branch,
     [string]$Target
 )
+
 
 # Recargar módulo
 if (Get-Module 'AppFromGit') {
@@ -41,6 +48,8 @@ function Show-Help {
     Write-Host " Actualizar submódulos:"
     Write-Host " .\AdminApp.ps1 -Update -Target all"
     Write-Host " .\AdminApp.ps1 -Update -Target <ruta>"
+    Write-Host " Descargar aplicación desde URL:"
+    Write-Host " .\AdminApp.ps1 -Download -DownloadUrl <url> -Version <versión> -Destination <carpeta>"
     Write-Host ""
     Write-Host " PURGA COMPLETA DEL SISTEMA:"
     Write-Host " (Elimina contenedores, imágenes, carpetas locales y todas las apps)"
@@ -59,6 +68,7 @@ function MainMenu {
     Write-Host "3. Eliminar TODOS los submódulos"
     Write-Host "4. Actualizar submódulos"
     Write-Host "5. Purga completa del sistema"
+    Write-Host "6. Descargar nueva aplicación desde URL"
     Write-Host "?. Ayuda"
     Write-Host "0. Salir"
     Write-Host "============================="
@@ -106,7 +116,13 @@ function MainMenu {
             Clear-All
             MainMenu
         }
-
+        "6" {
+            $url = Read-Host "URL de descarga"
+            $version = Read-Host "Versión"
+            $dest = Read-Host "Carpeta destino"
+            Add-FromUrl -UrlDescarga $url -Version $version -CarpetaDestino $dest
+            MainMenu
+        }
         "?" {
             Show-Help
             MainMenu
@@ -219,6 +235,17 @@ if ($Update) {
     Update-App -Target $Target
     exit
 }
+if ($Download) {
+    if (-not $DownloadUrl -or -not $Version -or -not $Destination) {
+        Write-Host "Faltan parámetros: -DownloadUrl -Version -Destination" -ForegroundColor Red
+        Write-Host "Usa: .\AdminApp.ps1 -Help" -ForegroundColor Yellow
+        exit 1
+    }
+
+    Add-FromUrl -UrlDescarga $DownloadUrl -Version $Version -CarpetaDestino $Destination
+    exit
+}
+
 
 # Si no hay parámetros → mostrar menú
 MainMenu

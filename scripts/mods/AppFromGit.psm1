@@ -27,6 +27,7 @@ function Add-AppFromGit {
         git submodule add -b $Branch $GitHubUrl $DestinationPath 
         Set-Location $absoluteDestination
         git submodule update --remote
+        Set-Location ..
 
     
         if ($LASTEXITCODE -eq 0) {
@@ -42,6 +43,70 @@ function Add-AppFromGit {
         exit 1
     }
 }
+
+function Add-FromUrl {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$UrlDescarga,
+
+        [Parameter(Mandatory=$true)]
+        [string]$Version,
+
+        [Parameter(Mandatory=$true)]
+        [string]$CarpetaDestino
+    )
+
+    # Crear carpeta destino si no existe
+    if (-not (Test-Path $CarpetaDestino)) {
+        New-Item -ItemType Directory -Path $CarpetaDestino | Out-Null
+    }
+
+    # Archivo temporal según versión
+    $TempFile = Join-Path $env:TEMP "app-$Version.tmp"
+
+    Write-Host "Descargando paquete desde $UrlDescarga ..."
+    Invoke-WebRequest -Uri $UrlDescarga -OutFile $TempFile
+
+    Write-Host "Descarga completada. Archivo temporal: $TempFile"
+
+    # Detectar extensión automáticamente
+    $Extension = [System.IO.Path]::GetExtension($UrlDescarga).ToLower()
+
+    Write-Host "Detectando tipo de archivo: $Extension"
+
+    switch ($Extension) {
+        ".zip" {
+            Write-Host "Descomprimiendo ZIP..."
+            Expand-Archive -Path $TempFile -DestinationPath $CarpetaDestino -Force
+        }
+
+        ".tgz" {
+            Write-Host "Descomprimiendo TGZ..."
+            tar -xzf $TempFile -C $CarpetaDestino
+        }
+
+        ".gz" {
+            Write-Host "Descomprimiendo GZ..."
+            tar -xzf $TempFile -C $CarpetaDestino
+        }
+
+        ".tar" {
+            Write-Host "Descomprimiendo TAR..."
+            tar -xf $TempFile -C $CarpetaDestino
+        }
+
+        default {
+            throw "Extensión no soportada: $Extension"
+        }
+    }
+
+    Write-Host "Paquete versión $Version descomprimido en $CarpetaDestino"
+
+    # Limpiar archivo temporal
+    Remove-Item $TempFile -Force
+}
+
+
 function   Remove-AllApps() {
     # Elimina TODOS los submódulos de un repositorio Git
     # Ignacio: este script limpia .gitmodules, .git/config, .git/modules y el working tree
