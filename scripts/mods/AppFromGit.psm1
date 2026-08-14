@@ -66,8 +66,7 @@ function Add-FromUrl {
 
     Write-Host "Descargando paquete desde $UrlDescarga ..."
     Invoke-WebRequest -Uri $UrlDescarga -OutFile $TempFile
-
-    Write-Host "Descarga completada. Archivo temporal: $TempFile"
+    Write-Host "Descarga completada."
 
     # Detectar extensión automáticamente
     $Extension = [System.IO.Path]::GetExtension($UrlDescarga).ToLower()
@@ -75,36 +74,57 @@ function Add-FromUrl {
     Write-Host "Detectando tipo de archivo: $Extension"
 
     switch ($Extension) {
+
+        # ---------------- ZIP ----------------
         ".zip" {
-            Write-Host "Descomprimiendo ZIP..."
-            Expand-Archive -Path $TempFile -DestinationPath $CarpetaDestino -Force
+            Write-Host "Descomprimiendo ZIP sin crear doble carpeta..."
+
+            # Carpeta temporal para extraer el ZIP
+            $TempExtract = Join-Path $env:TEMP "extract-$Version"
+            if (Test-Path $TempExtract) { Remove-Item $TempExtract -Recurse -Force }
+            New-Item -ItemType Directory -Path $TempExtract | Out-Null
+
+            # Extraer ZIP
+            Expand-Archive -Path $TempFile -DestinationPath $TempExtract -Force
+
+            # Detectar si el ZIP tiene carpeta raíz
+            $rootItems = Get-ChildItem $TempExtract
+            if ($rootItems.Count -eq 1 -and $rootItems[0].PSIsContainer) {
+                # ZIP con carpeta raíz → mover contenido interno
+                $innerFolder = $rootItems[0].FullName
+                Write-Host "ZIP contiene carpeta raíz: $($rootItems[0].Name)"
+                Write-Host "Moviendo contenido a $CarpetaDestino..."
+
+                Get-ChildItem $innerFolder | ForEach-Object {
+                    Move-Item $_.FullName -Destination $CarpetaDestino -Force
+                }
+            }
+            else {
+                # ZIP sin carpeta raíz → mover todo
+                Write-Host "ZIP sin carpeta raíz. Moviendo contenido..."
+                Get-ChildItem $TempExtract | ForEach-Object {
+                    Move-Item $_.FullName -Destination $CarpetaDestino -Force
+                }
+            }
+
+            # Limpiar temporales
+            Remove-Item $TempExtract -Recurse -Force
         }
 
-        ".tgz" {
-            Write-Host "Descomprimiendo TGZ..."
-            tar -xzf $TempFile -C $CarpetaDestino
-        }
-
-        ".gz" {
-            Write-Host "Descomprimiendo GZ..."
-            tar -xzf $TempFile -C $CarpetaDestino
-        }
-
-        ".tar" {
-            Write-Host "Descomprimiendo TAR..."
-            tar -xf $TempFile -C $CarpetaDestino
-        }
+        # ---------------- TGZ / TAR.GZ ----------------
+        ".tgz" { tar -xzf $TempFile -C $CarpetaDestino }
+        ".gz"  { tar -xzf $TempFile -C $CarpetaDestino }
+        ".tar" { tar -xf  $TempFile -C $CarpetaDestino }
 
         default {
             throw "Extensión no soportada: $Extension"
         }
     }
 
-    Write-Host "Paquete versión $Version descomprimido en $CarpetaDestino"
-
-    # Limpiar archivo temporal
+    Write-Host "Aplicación versión $Version instalada en $CarpetaDestino"
     Remove-Item $TempFile -Force
 }
+
 
 
 function   Remove-AllApps() {

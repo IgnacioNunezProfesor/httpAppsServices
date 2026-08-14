@@ -83,7 +83,33 @@ try {
     # ============================================================================
     # Register Application
     # ============================================================================
-    Write-Host "Registering application: $($envVars.APP_NAME)..."
+Write-Host "Registering application: $($envVars.APP_NAME)..."
+
+# ============================================================
+# 1. Si existe APP_DOWNLOAD_URL → descarga desde URL
+# ============================================================
+if ($envVars.APP_DOWNLOAD_URL) {
+    Write-Host "APP_DOWNLOAD_URL detected → downloading application..." -ForegroundColor Cyan
+
+    & .\scripts\AdminApp.ps1 -Download `
+        -DownloadUrl $envVars.APP_DOWNLOAD_URL `
+        -Destination $envVars.APP_LOCAL_PATH
+
+    if (-not $?) {
+        Write-Error "Failed to download application from URL"
+        Clear-Containers -reason "Application download failed"
+        exit 1
+    }
+
+    Write-Host "Application downloaded successfully." -ForegroundColor Green
+}
+
+# ============================================================
+# 2. Si NO existe APP_DOWNLOAD_URL → debe existir APP_GITHUB_URL
+# ============================================================
+elseif ($envVars.APP_GITHUB_URL) {
+    Write-Host "APP_GITHUB_URL detected → registering Git submodule..." -ForegroundColor Cyan
+
     & .\scripts\AdminApp.ps1 -add `
         -Name $envVars.APP_NAME `
         -Url $envVars.APP_GITHUB_URL `
@@ -91,10 +117,22 @@ try {
         -Branch $envVars.APP_GITHUB_BRANCH
 
     if (-not $?) {
-        Write-Error "Failed to register application"
+        Write-Error "Failed to register application from GitHub"
         Clear-Containers -reason "Application registration failed"
         exit 1
     }
+
+    Write-Host "Application registered successfully via Git." -ForegroundColor Green
+}
+
+# ============================================================
+# 3. Si no existe ninguna → error
+# ============================================================
+else {
+    Write-Error "No APP_DOWNLOAD_URL or APP_GITHUB_URL provided. Cannot deploy application."
+    exit 1
+}
+
 
     # ============================================================================
     # Start Docker Containers

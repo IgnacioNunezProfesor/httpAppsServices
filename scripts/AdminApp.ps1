@@ -8,7 +8,6 @@ param(
 
     [switch]$Download,
     [string]$DownloadUrl,
-    [string]$Version,
     [string]$Destination,
 
     [string]$Name,
@@ -49,7 +48,7 @@ function Show-Help {
     Write-Host " .\AdminApp.ps1 -Update -Target all"
     Write-Host " .\AdminApp.ps1 -Update -Target <ruta>"
     Write-Host " Descargar aplicación desde URL:"
-    Write-Host " .\AdminApp.ps1 -Download -DownloadUrl <url> -Version <versión> -Destination <carpeta>"
+    Write-Host " .\AdminApp.ps1 -Download -DownloadUrl <url> -Destination <carpeta>"
     Write-Host ""
     Write-Host " PURGA COMPLETA DEL SISTEMA:"
     Write-Host " (Elimina contenedores, imágenes, carpetas locales y todas las apps)"
@@ -118,9 +117,8 @@ function MainMenu {
         }
         "6" {
             $url = Read-Host "URL de descarga"
-            $version = Read-Host "Versión"
             $dest = Read-Host "Carpeta destino"
-            Add-FromUrl -UrlDescarga $url -Version $version -CarpetaDestino $dest
+            Add-FromUrl -UrlDescarga $url -CarpetaDestino $dest
             MainMenu
         }
         "?" {
@@ -236,13 +234,13 @@ if ($Update) {
     exit
 }
 if ($Download) {
-    if (-not $DownloadUrl -or -not $Version -or -not $Destination) {
+    if (-not $DownloadUrl -or -not $Destination) {
         Write-Host "Faltan parámetros: -DownloadUrl -Version -Destination" -ForegroundColor Red
         Write-Host "Usa: .\AdminApp.ps1 -Help" -ForegroundColor Yellow
         exit 1
     }
 
-    Add-FromUrl -UrlDescarga $DownloadUrl -Version $Version -CarpetaDestino $Destination
+    Add-FromUrl -UrlDescarga $DownloadUrl -CarpetaDestino $Destination
     exit
 }
 
