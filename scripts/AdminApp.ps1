@@ -235,12 +235,12 @@ if ($Update) {
 }
 if ($Download) {
     if (-not $DownloadUrl -or -not $Destination) {
-        Write-Host "Faltan parámetros: -DownloadUrl -Version -Destination" -ForegroundColor Red
+        Write-Host "Faltan parámetros: -DownloadUrl -Destination" -ForegroundColor Red
         Write-Host "Usa: .\AdminApp.ps1 -Help" -ForegroundColor Yellow
         exit 1
     }
 
-    Add-FromUrl -UrlDescarga $DownloadUrl -CarpetaDestino $Destination
+    Add-FromUrl -DownloadUrl $DownloadUrl -Destination $Destination
     exit
 }
 

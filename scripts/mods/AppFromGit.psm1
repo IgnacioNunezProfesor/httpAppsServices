@@ -50,9 +50,6 @@ function Add-FromUrl {
         [string]$UrlDescarga,
 
         [Parameter(Mandatory=$true)]
-        [string]$Version,
-
-        [Parameter(Mandatory=$true)]
         [string]$CarpetaDestino
     )
 
@@ -62,7 +59,7 @@ function Add-FromUrl {
     }
 
     # Archivo temporal según versión
-    $TempFile = Join-Path $env:TEMP "app-$Version.tmp"
+    $TempFile = Join-Path $env:TEMP "app.tmp"
 
     Write-Host "Descargando paquete desde $UrlDescarga ..."
     Invoke-WebRequest -Uri $UrlDescarga -OutFile $TempFile
@@ -112,16 +109,16 @@ function Add-FromUrl {
         }
 
         # ---------------- TGZ / TAR.GZ ----------------
-        ".tgz" { tar -xzf $TempFile -C $CarpetaDestino }
-        ".gz"  { tar -xzf $TempFile -C $CarpetaDestino }
-        ".tar" { tar -xf  $TempFile -C $CarpetaDestino }
+        ".tgz" { tar -vxzf $TempFile -C $CarpetaDestino }
+        ".gz"  { tar -vxzf $TempFile -C $CarpetaDestino }
+        ".tar" { tar -vxf  $TempFile -C $CarpetaDestino }
 
         default {
             throw "Extensión no soportada: $Extension"
         }
     }
 
-    Write-Host "Aplicación versión $Version instalada en $CarpetaDestino"
+    Write-Host "Aplicación instalada en $CarpetaDestino"
     Remove-Item $TempFile -Force
 }
 
