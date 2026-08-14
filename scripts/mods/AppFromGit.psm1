@@ -27,6 +27,7 @@ function Add-AppFromGit {
         git submodule add -b $Branch $GitHubUrl $DestinationPath 
         Set-Location $absoluteDestination
         git submodule update --remote
+
     
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Submodule added successfully!" -ForegroundColor Green
