@@ -47,80 +47,118 @@ function Add-AppFromGit {
 function Add-FromUrl {
     param(
         [Parameter(Mandatory=$true)]
-        [string]$UrlDescarga,
+        [string]$DownloadUrl,
 
         [Parameter(Mandatory=$true)]
-        [string]$CarpetaDestino
+        [string]$Destination
     )
 
-    # Crear carpeta destino si no existe
-    if (-not (Test-Path $CarpetaDestino)) {
-        New-Item -ItemType Directory -Path $CarpetaDestino | Out-Null
+    Write-Host "=== Add-FromUrl iniciado ==="
+
+       $downloads = Join-Path $wwwroot "downloads"
+
+    Write-Host "Destino final: $Destination"
+    Write-Host "Carpeta de descargas: $downloads"
+
+    # ---------------------------------------------------------
+    # 2. Validar carpeta destino
+    # ---------------------------------------------------------
+    if (-not (Test-Path $Destination)) {
+        Write-Host "La carpeta destino no existe. Creándola..."
+        New-Item -ItemType Directory -Path $Destination | Out-Null
+    } else {
+        $items = Get-ChildItem $Destination
+        if ($items.Count -gt 0) {
+            Write-Host "ERROR: La carpeta '$Destination' existe y NO está vacía."
+            Write-Host "Proceso cancelado."
+            return
+        }
+        Write-Host "La carpeta destino existe y está vacía. Continuando..."
     }
 
-    # Archivo temporal según versión
-    $TempFile = Join-Path $env:TEMP "app.tmp"
+    # ---------------------------------------------------------
+    # 3. Crear carpeta downloads si no existe
+    # ---------------------------------------------------------
+    if (-not (Test-Path $downloads)) {
+        Write-Host "Creando carpeta de descargas..."
+        New-Item -ItemType Directory -Path $downloads | Out-Null
+    }
 
-    Write-Host "Descargando paquete desde $UrlDescarga ..."
-    Invoke-WebRequest -Uri $UrlDescarga -OutFile $TempFile
-    Write-Host "Descarga completada."
+    # ---------------------------------------------------------
+    # 4. Obtener nombre del archivo desde la URL
+    # ---------------------------------------------------------
+    $FileName = [System.IO.Path]::GetFileName($DownloadUrl)
+    if ([string]::IsNullOrWhiteSpace($FileName)) {
+        throw "La URL '$DownloadUrl' no contiene un nombre de archivo válido."
+    }
 
-    # Detectar extensión automáticamente
-    $Extension = [System.IO.Path]::GetExtension($UrlDescarga).ToLower()
+    $TempFile = Join-Path $downloads $FileName
+    Write-Host "Archivo detectado: $FileName"
 
+    # ---------------------------------------------------------
+    # 5. Descargar archivo
+    # ---------------------------------------------------------
+    Write-Host "Descargando paquete desde $DownloadUrl ..."
+    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempFile -ErrorAction Stop
+    Write-Host "Descarga completada: $TempFile"
+
+    # ---------------------------------------------------------
+    # 6. Detectar extensión
+    # ---------------------------------------------------------
+    $Extension = [System.IO.Path]::GetExtension($FileName).ToLower()
     Write-Host "Detectando tipo de archivo: $Extension"
+
+    # ---------------------------------------------------------
+    # 7. Descomprimir en carpeta destino
+    # ---------------------------------------------------------
+    Write-Host "Descomprimiendo en $Destination ..."
 
     switch ($Extension) {
 
-        # ---------------- ZIP ----------------
         ".zip" {
-            Write-Host "Descomprimiendo ZIP sin crear doble carpeta..."
-
-            # Carpeta temporal para extraer el ZIP
-            $TempExtract = Join-Path $env:TEMP "extract-$Version"
-            if (Test-Path $TempExtract) { Remove-Item $TempExtract -Recurse -Force }
-            New-Item -ItemType Directory -Path $TempExtract | Out-Null
-
-            # Extraer ZIP
-            Expand-Archive -Path $TempFile -DestinationPath $TempExtract -Force
-
-            # Detectar si el ZIP tiene carpeta raíz
-            $rootItems = Get-ChildItem $TempExtract
-            if ($rootItems.Count -eq 1 -and $rootItems[0].PSIsContainer) {
-                # ZIP con carpeta raíz → mover contenido interno
-                $innerFolder = $rootItems[0].FullName
-                Write-Host "ZIP contiene carpeta raíz: $($rootItems[0].Name)"
-                Write-Host "Moviendo contenido a $CarpetaDestino..."
-
-                Get-ChildItem $innerFolder | ForEach-Object {
-                    Move-Item $_.FullName -Destination $CarpetaDestino -Force
-                }
-            }
-            else {
-                # ZIP sin carpeta raíz → mover todo
-                Write-Host "ZIP sin carpeta raíz. Moviendo contenido..."
-                Get-ChildItem $TempExtract | ForEach-Object {
-                    Move-Item $_.FullName -Destination $CarpetaDestino -Force
-                }
-            }
-
-            # Limpiar temporales
-            Remove-Item $TempExtract -Recurse -Force
+            Expand-Archive -Path $TempFile -DestinationPath $Destination -Force -ErrorAction Stop
         }
 
-        # ---------------- TGZ / TAR.GZ ----------------
-        ".tgz" { tar -vxzf $TempFile -C $CarpetaDestino }
-        ".gz"  { tar -vxzf $TempFile -C $CarpetaDestino }
-        ".tar" { tar -vxf  $TempFile -C $CarpetaDestino }
+        ".tgz" { tar -xzf $TempFile -C $Destination }
+        ".gz"  { tar -xzf $TempFile -C $Destination }
+        ".tar" { tar -xf  $TempFile -C $Destination }
 
         default {
             throw "Extensión no soportada: $Extension"
         }
     }
 
-    Write-Host "Aplicación instalada en $CarpetaDestino"
+    Write-Host "Descompresión completada."
+
+    # ---------------------------------------------------------
+    # 8. Normalizar contenido: evitar carpeta única
+    # ---------------------------------------------------------
+    $content = Get-ChildItem $Destination
+
+    if ($content.Count -eq 1 -and $content[0].PSIsContainer) {
+        Write-Host "El paquete contiene una única carpeta. Moviendo contenido al destino raíz..."
+
+        $innerFolder = $content[0].FullName
+        Get-ChildItem $innerFolder | ForEach-Object {
+            Move-Item $_.FullName $Destination -Force
+        }
+
+        Remove-Item $innerFolder -Force -Recurse
+        Write-Host "Contenido normalizado."
+    } else {
+        Write-Host "El paquete contiene múltiples archivos o carpetas. No se requiere normalización."
+    }
+
+    # ---------------------------------------------------------
+    # 9. Limpieza
+    # ---------------------------------------------------------
+    Write-Host "Eliminando archivo temporal..."
     Remove-Item $TempFile -Force
+
+    Write-Host "Aplicación instalada correctamente en $Destination"
+    Write-Host "=== Add-FromUrl finalizado ==="
 }
+
 
 
 

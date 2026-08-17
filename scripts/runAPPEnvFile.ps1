@@ -93,8 +93,7 @@ if ($envVars.APP_DOWNLOAD_URL) {
 
     & .\scripts\AdminApp.ps1 -Download `
         -DownloadUrl $envVars.APP_DOWNLOAD_URL `
-        -Destination $envVars.APP_LOCAL_PATH
-
+        -Destination Join-Path $envVars.APP_WWWROOT $envVars.APP_LOCAL_PATH
     if (-not $?) {
         Write-Error "Failed to download application from URL"
         Clear-Containers -reason "Application download failed"
