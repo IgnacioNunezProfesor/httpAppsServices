@@ -5,19 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "bashdb",
-            "request": "launch",
-            "name": "Debug buildImage.sh apache2",
-            "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/apps/apache2/scripts/buildImage.sh",
-            "args": ["${workspaceFolder}/apps/apache2/env/dev.apache2.env"]
-        },
-        {
             "name": "Debug buildImage.ps1 apache2",
             "type": "PowerShell",
             "request": "launch",
             "script": "& \"${workspaceFolder}/apps/apache2/scripts/buildImage.ps1\" \"${workspaceFolder}/apps/apache2/env/dev.apache2.env\"",
             "cwd": "${cwd}"
-        }        
+        },
+        {
+            "name": "Debug runImage.ps1 apache2",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "& \"${workspaceFolder}/apps/apache2/scripts/runImage.ps1\" \"${workspaceFolder}/apps/apache2/env/dev.apache2.env\"",
+            "cwd": "${cwd}"
+        }  
     ]
 }
