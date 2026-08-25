@@ -5,113 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name":"Listen XDEBUB",
-            "type":"php",
-            "request":"launch",
-            "port":9003,
-            "pathMappings": {
-                "/var/www/moodle": "${workspaceFolder}/moodle"
-            }
-        },
-        {
-            "type": "dockerfile",
-            "request": "launch",
-            "name": "Debug Build phpapachedev.dockerfile",
-            "dockerfile": "./docker/phpapache.dev.dockerfile",
-            "contextPath": "${workspaceFolder}/"
-        },
-        {
-            "name": "Debug runAppEnvFile.ps1 wordpress",
+            "name": "Debug runAppEnvFile.ps1 apache2",
             "type": "PowerShell",
             "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\runAppEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.wordpress.env\"",
+            "script": "& \"${workspaceFolder}\\scripts\\runAppEnvFile.ps1\" \"${workspaceFolder}\\apps\\apache2\\env\\dev.apache2.env\"",
             "cwd": "${cwd}"
-        },
-        {
-            "name": "Debug runAppEnvFile.ps1 moodle",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\runAppEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.moodle.env\"",
-            "cwd": "${cwd}"
-        },
-        {
-            "name": "Debug buildEnvFile.ps1 dev.phpapache.env",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\buildEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.phpapache.env\"",
-            "cwd": "${cwd}"
-        },
-        {
-            "name": "Debug buildEnvFile.ps1 dev.mariadb.env",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\buildEnvFile.ps1\" -EnvFile \"${workspaceFolder}\\env\\dev.mariadb.env\"",
-            "cwd": "${cwd}"
-        },
-        {
-            "name": "Debug test.network.ps1",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\tests\\test.networks.ps1\"",
-            "cwd": "${cwd}"
-        },
-        {
-            "name": "Debug runFromEnvFile.ps1 phpapache",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\runEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.phpapache.env\" \"${workspaceFolder}\\env\\dev.network.env\"",
-            "cwd": "${cwd}"
-        },
-        {
-            "name": "Debug runFromEnvFile.ps1 mariadb",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\runEnvFile.ps1\" \"${workspaceFolder}\\env\\dev.mariadb.env\" \"${workspaceFolder}\\env\\dev.network.env\"",
-            "cwd": "${cwd}"
-        },
-        {
-            "name": "Debug launchSecurityanalizer.ps1",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\launchSecurityanalizer.ps1\"",
-            "cwd": "${cwd}"
-        },
-        {
-            "name": "Launch apache edge",
-            "request": "launch",
-            "type": "msedge",
-            "url": "http://apache.localhost",
-            "webRoot": "${workspaceFolder}/wwwroot"
-        },
-        {
-            "name": "Launch phpapache edge",
-            "request": "launch",
-            "type": "msedge",
-            "url": "http://phpapache.localhost:81",
-            "webRoot": "${workspaceFolder}/wwwroot"
-        },
-        {
-            "name": "Launch phpinfo phpapache edge",
-            "request": "launch",
-            "type": "msedge",
-            "url": "http://phpapache.localhost:81/php-info",
-            "webRoot": "${workspaceFolder}/wwwroot"
-        },
-        {
-            "name": "Launch wordpress edge",
-            "request": "launch",
-            "type": "msedge",
-            "url": "http://wordpress.localhost:81/",
-            "webRoot": "${workspaceFolder}/wordpress"
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Launch phpinfo and phpapache edge",
-            "configurations": [
-                "Launch phpinfo phpapache edge",
-                "Launch phpapache edge"
-            ]
         }
     ]
+ //   "compounds": [
+        //{
+   //         "name": "Launch phpinfo and phpapache edge",
+   //         "configurations": [
+   //             "Launch phpinfo phpapache edge",
+   //             "Launch phpapache edge"
+    //        ]
+        //}
+    //]
 }

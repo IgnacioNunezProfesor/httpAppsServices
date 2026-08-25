@@ -1,0 +1,86 @@
+/* ESTILOS GENERALES */
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f4f4;
+    color: #333;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+section {
+    padding: 40px 20px;
+    margin-bottom: 40px;
+    background: white;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* HEADER */
+.header {
+    background: linear-gradient(135deg, #4a90e2, #0077cc);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+/* SECCIÓN FLOAT */
+.float-container img {
+    float: left;
+    margin-right: 20px;
+    border-radius: 10px;
+}
+
+.float-container::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/* SECCIÓN FLEXBOX */
+.flex-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.flex-item {
+    background: #ffcc66;
+    padding: 20px;
+    border-radius: 8px;
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* SECCIÓN GRID */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.grid-item {
+    background: #66d1a7;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: #222;
+    color: white;
+}

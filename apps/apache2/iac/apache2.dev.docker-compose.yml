@@ -1,0 +1,38 @@
+services:
+  http:
+    image: ${MAGE_NAME}
+    container_name: ${CONTAINER_NAME}
+    build:
+      context: ..
+      dockerfile: ${HTTP_DOCKERFILE_PATH}
+      args:
+        - BUILD_HTTP_APK_REQ=${BUILD_HTTP_APK_REQ}
+    restart: always
+    ports:
+      - "${HTTP_LOCAL_PORT}:${HTTP_SERVER_PORT}"
+    networks:
+      - MyNet
+    env_file:
+      - env/dev.apache2.env
+    volumes:
+      - ${APP_LOCAL_ROOT_PATH}:${APP_SERVER_ROOT_PATH}      
+      - ${LOCAL_LOG_PATH}:${SERVER_LOG_PATH}
+    healthcheck:
+      test: [
+        "CMD", 
+        "curl", 
+        "-f", 
+        "http://${SERVER_NAME}:${SERVER_PORT}/server-status"
+      ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+networks:
+  MyNet:
+    name: ${NETWORK_NAME}
+    driver: ${NETWORK_DRIVER}
+    ipam:
+      config:
+        - subnet: ${NETWORK_SUBNET}
+          gateway: ${NETWORK_SUBNET_GATEWAY}
