@@ -8,17 +8,8 @@
             "name": "Debug runAppEnvFile.ps1 apache2",
             "type": "PowerShell",
             "request": "launch",
-            "script": "& \"${workspaceFolder}\\scripts\\runAppEnvFile.ps1\" \"${workspaceFolder}\\apps\\apache2\\env\\dev.apache2.env\"",
+            "script": "& \"${workspaceFolder}/apps/apache2/scripts/buildImage.ps1\" \"${workspaceFolder}/apps/apache2/env/dev.apache2.env\"",
             "cwd": "${cwd}"
         }
     ]
- //   "compounds": [
-        //{
-   //         "name": "Launch phpinfo and phpapache edge",
-   //         "configurations": [
-   //             "Launch phpinfo phpapache edge",
-   //             "Launch phpapache edge"
-    //        ]
-        //}
-    //]
 }
