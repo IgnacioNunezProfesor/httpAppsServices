@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/bin/sh
 set -euo pipefail
 #
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting MariaDB container entrypoint"
